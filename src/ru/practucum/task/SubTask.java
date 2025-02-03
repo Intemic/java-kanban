@@ -1,7 +1,12 @@
 package ru.practucum.task;
 
 public class SubTask extends Task {
-    private final Epic parent;
+    private Epic parent;
+
+    private SubTask(SubTask subTask) {
+        super(subTask);
+        this.parent = subTask.parent;
+    }
 
     public SubTask(String name, String description, Epic epic) {
         super(name, description);
@@ -14,9 +19,9 @@ public class SubTask extends Task {
         return parent;
     }
 
-    public void modify(SubTask subTask) {
+    public void update(SubTask subTask) {
         // не будем позволять менять родителя
-        super.modify(subTask);
+        super.update(subTask);
     }
 
     public void setStatus(Status status) {
@@ -24,6 +29,18 @@ public class SubTask extends Task {
         // обновим статус у Эпика
         if(status != null && parent != null)
             parent.updateStatus();
+    }
+
+    public SubTask clone(Epic parent) {
+        SubTask cloneSubTask = (SubTask) super.clone();
+        cloneSubTask.parent = parent;
+
+        return cloneSubTask;
+    }
+
+    @Override
+    public SubTask clone() {
+        return new SubTask(this);
     }
 
     @Override

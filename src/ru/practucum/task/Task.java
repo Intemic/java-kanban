@@ -1,5 +1,6 @@
 package ru.practucum.task;
 
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -10,6 +11,14 @@ public class Task {
     private String description;
     private Status status;
 
+    // нужен для создания объекта без изменения uid
+    protected Task(Task task) {
+        this.id = task.id;
+        this.name = task.name;
+        this.description = task.description;
+        this.status = task.status;
+    }
+
     public Task(String name, String description) {
         this.id = ++uid;
         this.name = name;
@@ -17,7 +26,6 @@ public class Task {
         this.status = Status.NEW;
     }
 
-    // наружу не показываем
     public String getName() {
         return name;
     }
@@ -36,10 +44,11 @@ public class Task {
             this.description = description;
     }
 
-    public void modify(Task task) {
+    public void update(Task task) {
         if (task != null) {
             setName(task.name);
             setDescription(task.description);
+            setStatus(task.status);
         }
     }
 
@@ -47,13 +56,24 @@ public class Task {
         return status;
     }
 
-    public void setStatus(Status status) {
+    protected void setStatus(Status status) {
       if(status != null)
           this.status = status;
     }
 
     public int getId() {
         return id;
+    }
+
+    // будем возвращать копию
+    public Task clone() {
+//        Task copyTask = new Task();
+//
+//        copyTask.id = this.id;
+//        copyTask.name = this.name;
+//        copyTask.description = this.description;
+//        copyTask.status = this.status;
+        return new Task(this);
     }
 
     @Override
@@ -70,19 +90,6 @@ public class Task {
     @Override
     public int hashCode() {
         return Objects.hashCode(id);
-    }
-
-    public static void main(String[] args) {
-        ArrayList<Task> tasks = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            tasks.add(new Task("Задача № " + i, "Что то сделать № " + i));
-        }
-
-        tasks.get(3).id = 1;
-        if (tasks.get(0).equals(tasks.get(3)))
-            System.out.println("Равны");
-        System.out.println(tasks.get(0).hashCode());
-        System.out.println(tasks.get(3).hashCode());
     }
 
     @Override

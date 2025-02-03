@@ -5,16 +5,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Epic extends Task {
-    private final HashMap<Integer, SubTask> subTasks = new HashMap<>();
+    private HashMap<Integer, SubTask> subTasks = new HashMap<>();
+
+    private Epic(Epic epic) {
+        super(epic);
+        // копируем только содержимо, подзадачи не будем копировать это неважно
+        this.subTasks = (HashMap<Integer, SubTask>) epic.subTasks.clone();
+    }
 
     public Epic(String name, String description) {
         super(name, description);
-        setStatus(Status.NEW);
+        updateStatus();
     }
 
     /*
-        доступ на уровне пакета, добавлять могут только классы данного пакета,
-        закроем от менеджера и основного класса
+            доступ на уровне пакета, добавлять могут только классы данного пакета,
+            закроем от менеджера и основного класса
     */
     void addSubTask(SubTask subTask) {
         if (subTask != null) {
@@ -50,9 +56,9 @@ public class Epic extends Task {
         updateStatus();
     }
 
-    public void modify(Epic epic) {
+    public void update(Epic epic) {
         if (epic != null) {
-            super.modify(epic);
+            super.update(epic);
             subTasks.clear();
             try {
                 for (SubTask subTask : epic.getSubTasks())
@@ -88,6 +94,11 @@ public class Epic extends Task {
             }
 
         setStatus(Status.IN_PROGRESS);
+    }
+
+    @Override
+    public Epic clone() {
+        return new Epic(this);
     }
 
     @Override

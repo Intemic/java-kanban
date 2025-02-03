@@ -21,8 +21,9 @@ public class TaskManager {
 
         if (!tasks.isEmpty())
             for (Map.Entry<Integer, Task> entry : tasks.entrySet())
+                // добавляем копии, чтобы не изменили данные, менять можно только через update
                 if (entry.getValue().getClass() == type)
-                    result.add((T) entry.getValue());
+                    result.add((T) entry.getValue().clone());
 
         return !result.isEmpty() ? result : null;
     }
@@ -40,16 +41,27 @@ public class TaskManager {
 
         try {
             for (Epic epic : getEpics())
-                subTasks.addAll(epic.getSubTasks());
+                // так же добавляем копии
+                for (SubTask subTask : epic.getSubTasks())
+                    subTasks.add(subTask.clone());
         } catch (NullPointerException e) {
             return null;
         }
 
-        return !subTasks.isEmpty() ? subTasks : null;
+        return subTasks;
     }
 
     public ArrayList<SubTask> getSubTasksForEpic(Epic epic) {
-        return epic != null ? epic.getSubTasks() : null;
+        ArrayList<SubTask> subTasks = new ArrayList<>();
+
+        try {
+            for (SubTask subTask : epic.getSubTasks())
+                subTasks.add(subTask.clone());
+        } catch (NullPointerException e) {
+            return null;
+        }
+
+        return subTasks;
     }
 
     // удаление
@@ -76,7 +88,7 @@ public class TaskManager {
 
     public void deleteAllSubTasks() {
         try {
-            for (SubTask subTask: getSubTasks())
+            for (SubTask subTask : getSubTasks())
                 subTask.getParent().deleteSubTask(subTask);
         } catch (NullPointerException e) {
             //
@@ -84,11 +96,11 @@ public class TaskManager {
     }
 
     // поиск
-    private <T extends  Task> T getElement(int id) {
+    private <T extends Task> T getElement(int id) {
         T result = null;
 
         if (!tasks.isEmpty())
-            result = (T)tasks.get(id);
+            result = (T) tasks.get(id).clone();
 
         return result;
     }
@@ -104,12 +116,12 @@ public class TaskManager {
     public SubTask getSubTask(int id) {
         SubTask subTask = null;
 
-        if(!tasks.isEmpty())
+        if (!tasks.isEmpty())
             try {
                 for (Epic epic : getEpics()) {
                     subTask = epic.getSubTaskForId(id);
                     if (subTask != null)
-                        return subTask;
+                        return subTask.clone();
                 }
             } catch (NullPointerException e) {
                 // не будем обрабатывать
@@ -125,7 +137,7 @@ public class TaskManager {
         if (element != null) {
             oldElement = getElement(element.getId());
             if (oldElement != null)
-                oldElement.modify(element);
+                oldElement.update(element);
         }
     }
 
@@ -143,8 +155,8 @@ public class TaskManager {
         if (subTask != null) {
             oldSubTask = getSubTask(subTask.getId());
             if (oldSubTask != null)
-                oldSubTask.modify(subTask);
-      }
+                oldSubTask.update(subTask);
+        }
     }
 
 }
