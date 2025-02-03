@@ -16,24 +16,28 @@ public class TaskManager {
     }
 
     // все для вывода
-    private <T extends Task> ArrayList<T> getElements(Class<? extends Task> type) {
+    private <T extends Task> ArrayList<T> getElements(Class<? extends Task> type, boolean isClone) {
         ArrayList<T> result = new ArrayList<>();
 
         if (!tasks.isEmpty())
             for (Map.Entry<Integer, Task> entry : tasks.entrySet())
-                // добавляем копии, чтобы не изменили данные, менять можно только через update
                 if (entry.getValue().getClass() == type)
-                    result.add((T) entry.getValue().clone());
+                    // добавляем копии, чтобы не изменили данные, менять можно только через modify
+                    if (isClone)
+                        result.add((T) entry.getValue().clone());
+                    // изменение
+                    else
+                        result.add((T) entry.getValue());
 
         return !result.isEmpty() ? result : null;
     }
 
     public ArrayList<Task> getTasks() {
-        return getElements(Task.class);
+        return getElements(Task.class, true);
     }
 
     public ArrayList<Epic> getEpics() {
-        return getElements(Epic.class);
+        return getElements(Epic.class, true);
     }
 
     public ArrayList<SubTask> getSubTasks() {
@@ -96,32 +100,41 @@ public class TaskManager {
     }
 
     // поиск
-    private <T extends Task> T getElement(int id) {
+    private <T extends Task> T getElement(int id, boolean isClone) {
         T result = null;
 
-        if (!tasks.isEmpty())
-            result = (T) tasks.get(id).clone();
+        if (!tasks.isEmpty()) {
+            result = (T) tasks.get(id);
+            if (result != null)
+                // для обычного поиска возвращаем клон
+                if (isClone)
+                    result = (T) result.clone();
+        }
 
         return result;
     }
 
     public Task getTask(int id) {
-        return getElement(id);
+        return getElement(id, true);
     }
 
     public Epic getEpic(int id) {
-        return getElement(id);
+        return getElement(id, true);
     }
 
-    public SubTask getSubTask(int id) {
+    private SubTask getSubTaskInner(int id, boolean isClone) {
         SubTask subTask = null;
 
         if (!tasks.isEmpty())
             try {
-                for (Epic epic : getEpics()) {
-                    subTask = epic.getSubTaskForId(id);
+                for (Task epic : getElements(Epic.class, false)) {
+                    subTask = ((Epic)epic).getSubTaskForId(id);
                     if (subTask != null)
-                        return subTask.clone();
+                        // для обычного поиска возвращаем клон
+                        if (isClone)
+                            return subTask.clone();
+                        else
+                            return subTask;
                 }
             } catch (NullPointerException e) {
                 // не будем обрабатывать
@@ -130,12 +143,16 @@ public class TaskManager {
         return subTask;
     }
 
+    public SubTask getSubTask(int id) {
+        return getSubTaskInner(id, true);
+    }
+
     // обновление
     public <T extends Task> void modifyElement(T element) {
         T oldElement;
 
         if (element != null) {
-            oldElement = getElement(element.getId());
+            oldElement = getElement(element.getId(), false);
             if (oldElement != null)
                 oldElement.update(element);
         }
@@ -153,7 +170,7 @@ public class TaskManager {
         SubTask oldSubTask;
 
         if (subTask != null) {
-            oldSubTask = getSubTask(subTask.getId());
+            oldSubTask = getSubTaskInner(subTask.getId(), false);
             if (oldSubTask != null)
                 oldSubTask.update(subTask);
         }

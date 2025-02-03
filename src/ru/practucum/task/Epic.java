@@ -9,8 +9,9 @@ public class Epic extends Task {
 
     private Epic(Epic epic) {
         super(epic);
-        // копируем только содержимо, подзадачи не будем копировать это неважно
-        this.subTasks = (HashMap<Integer, SubTask>) epic.subTasks.clone();
+        this.subTasks = new HashMap<>();
+        for (Map.Entry<Integer, SubTask> entry : epic.subTasks.entrySet())
+            this.subTasks.put(entry.getKey(), entry.getValue().clone());
     }
 
     public Epic(String name, String description) {
@@ -18,10 +19,16 @@ public class Epic extends Task {
         updateStatus();
     }
 
+    @Override
+    // вручную нельзя изменять
+    public void setStatus(Status status) {
+        throw new UnsupportedOperationException();
+    }
+
     /*
-            доступ на уровне пакета, добавлять могут только классы данного пакета,
-            закроем от менеджера и основного класса
-    */
+                доступ на уровне пакета, добавлять могут только классы данного пакета,
+                закроем от менеджера и основного класса
+        */
     void addSubTask(SubTask subTask) {
         if (subTask != null) {
             subTasks.put(subTask.getId(), subTask);
@@ -57,7 +64,7 @@ public class Epic extends Task {
     }
 
     public void update(Epic epic) {
-        if (epic != null) {
+        if (epic != null && this.getId() == epic.getId()) {
             super.update(epic);
             subTasks.clear();
             try {
@@ -77,7 +84,7 @@ public class Epic extends Task {
 
     void updateStatus() {
         if (subTasks.isEmpty()) {
-            setStatus(Status.NEW);
+            status = Status.NEW;
             return;
         }
 
@@ -89,11 +96,11 @@ public class Epic extends Task {
 
         for (Map.Entry<Status, Integer> entry : countStatus.entrySet())
             if (entry.getValue() == subTasks.size()) {
-                setStatus(entry.getKey());
+                status = entry.getKey();
                 return;
             }
 
-        setStatus(Status.IN_PROGRESS);
+        status = Status.IN_PROGRESS;
     }
 
     @Override
@@ -112,7 +119,7 @@ public class Epic extends Task {
         positionStatus = result.indexOf("status");
         if (positionStatus != -1)
             result = new StringBuffer(result).insert(positionStatus,
-                    "subTasks=" + (subTasks != null ? subTasks : "null") + ", ").toString();
+                    "subTasks=" + (subTasks != null ? subTasks.toString() : "null") + ", ").toString();
 
         return result;
     }

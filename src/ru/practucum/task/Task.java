@@ -9,7 +9,7 @@ public class Task {
     private int id;
     private String name;
     private String description;
-    private Status status;
+    protected Status status;
 
     // нужен для создания объекта без изменения uid
     protected Task(Task task) {
@@ -45,10 +45,14 @@ public class Task {
     }
 
     public void update(Task task) {
-        if (task != null) {
+        if (task != null && this.id == task.getId()) {
             setName(task.name);
             setDescription(task.description);
-            setStatus(task.status);
+            try {
+                setStatus(task.status);
+            } catch (UnsupportedOperationException e) {
+                // не все можно обновить
+            }
         }
     }
 
@@ -56,7 +60,7 @@ public class Task {
         return status;
     }
 
-    protected void setStatus(Status status) {
+    public void setStatus(Status status) {
       if(status != null)
           this.status = status;
     }
@@ -67,12 +71,6 @@ public class Task {
 
     // будем возвращать копию
     public Task clone() {
-//        Task copyTask = new Task();
-//
-//        copyTask.id = this.id;
-//        copyTask.name = this.name;
-//        copyTask.description = this.description;
-//        copyTask.status = this.status;
         return new Task(this);
     }
 

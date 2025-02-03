@@ -27,15 +27,8 @@ public class SubTask extends Task {
     public void setStatus(Status status) {
         super.setStatus(status);
         // обновим статус у Эпика
-        if(status != null && parent != null)
+        if (status != null && parent != null)
             parent.updateStatus();
-    }
-
-    public SubTask clone(Epic parent) {
-        SubTask cloneSubTask = (SubTask) super.clone();
-        cloneSubTask.parent = parent;
-
-        return cloneSubTask;
     }
 
     @Override
@@ -53,10 +46,10 @@ public class SubTask extends Task {
             result = new StringBuffer(result).insert(0, "Sub").toString();
 
         positionStatus = result.indexOf("status");
-        if (positionStatus != -1){
+        if (positionStatus != -1) {
             if (parent != null)
                 parentValues = parent.getClass().getSimpleName()
-                        + "{name=" + parent.getName() + ", id=" + parent.getId() + "}";
+                        + "{id=" + parent.getId() + ", name=" + parent.getName() + "}";
             result = new StringBuffer(result).insert(positionStatus, "parent=" + parentValues + ", ").toString();
         }
 
