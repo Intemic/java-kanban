@@ -1,4 +1,4 @@
-package ru.practucum.task;
+package ru.practicum.task;
 
 public class SubTask extends Task {
     private Epic parent;

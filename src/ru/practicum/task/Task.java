@@ -1,7 +1,5 @@
-package ru.practucum.task;
+package ru.practicum.task;
 
-import java.time.format.TextStyle;
-import java.util.ArrayList;
 import java.util.Objects;
 
 public class Task {

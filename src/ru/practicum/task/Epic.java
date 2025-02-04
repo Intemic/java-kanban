@@ -1,4 +1,4 @@
-package ru.practucum.task;
+package ru.practicum.task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,12 +49,7 @@ public class Epic extends Task {
     }
 
     public ArrayList<SubTask> getSubTasks() {
-        ArrayList<SubTask> subTasks = new ArrayList<>();
-
-        for (Map.Entry<Integer, SubTask> entry : this.subTasks.entrySet())
-            subTasks.add(entry.getValue());
-
-        return !subTasks.isEmpty() ? subTasks : null;
+        return new ArrayList<>(subTasks.values());
     }
 
     public void deleteSubTasks() {

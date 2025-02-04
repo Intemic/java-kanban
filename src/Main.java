@@ -1,4 +1,5 @@
-import ru.practucum.task.*;
+import ru.practicum.task.*;
+import ru.practicum.manager.TaskManager;
 
 import java.util.ArrayList;
 
@@ -76,7 +77,7 @@ public class Main {
                 + "Кол-во эпиков - "
                 + (manager.getEpics() != null ? manager.getEpics().size() : 0) + "\n"
                 + "Кол-во подзадач - "
-                + (manager.getSubTasks() != null ? manager.getSubTasks().size() : 0));
+                + (manager.getSubTasks().size()));
         System.out.println(" ");
     }
 
@@ -154,6 +155,11 @@ public class Main {
         id = 50;
         task = manager.getTask(id);
         printInfoFind(task, id);
+        System.out.println(" ");
+
+        id = 100;
+        subTask = manager.getSubTask(id);
+        printInfoFind(subTask, id);
         System.out.println(" ");
 
     }

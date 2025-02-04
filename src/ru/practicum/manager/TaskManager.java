@@ -1,4 +1,8 @@
-package ru.practucum.task;
+package ru.practicum.manager;
+
+import ru.practicum.task.Epic;
+import ru.practicum.task.SubTask;
+import ru.practicum.task.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,11 +29,11 @@ public class TaskManager {
                     // добавляем копии, чтобы не изменили данные, менять можно только через modify
                     if (isClone)
                         result.add((T) entry.getValue().clone());
-                    // изменение
+                        // изменение
                     else
                         result.add((T) entry.getValue());
 
-        return !result.isEmpty() ? result : null;
+        return result;
     }
 
     public ArrayList<Task> getTasks() {
@@ -43,14 +47,10 @@ public class TaskManager {
     public ArrayList<SubTask> getSubTasks() {
         ArrayList<SubTask> subTasks = new ArrayList<>();
 
-        try {
-            for (Epic epic : getEpics())
-                // так же добавляем копии
-                for (SubTask subTask : epic.getSubTasks())
-                    subTasks.add(subTask.clone());
-        } catch (NullPointerException e) {
-            return null;
-        }
+        for (Epic epic : getEpics())
+            // так же добавляем копии
+            for (SubTask subTask : epic.getSubTasks())
+                subTasks.add(subTask.clone());
 
         return subTasks;
     }
@@ -58,45 +58,29 @@ public class TaskManager {
     public ArrayList<SubTask> getSubTasksForEpic(Epic epic) {
         ArrayList<SubTask> subTasks = new ArrayList<>();
 
-        try {
-            for (SubTask subTask : epic.getSubTasks())
-                subTasks.add(subTask.clone());
-        } catch (NullPointerException e) {
-            return null;
-        }
+        for (SubTask subTask : epic.getSubTasks())
+            subTasks.add(subTask.clone());
 
         return subTasks;
     }
 
     // удаление
     public void deleteAllTasks() {
-        try {
-            for (Task task : getTasks())
-                tasks.remove(task.getId());
-        } catch (NullPointerException e) {
-            //
-        }
+        for (Task task : getTasks())
+            tasks.remove(task.getId());
     }
 
     public void deleteAllEpics() {
-        try {
-            for (Epic epic : getEpics()) {
-                // вычищаем подзадачи
-                epic.deleteSubTasks();
-                tasks.remove(epic.getId());
-            }
-        } catch (NullPointerException e) {
-            //
+        for (Epic epic : getEpics()) {
+            // вычищаем подзадачи
+            epic.deleteSubTasks();
+            tasks.remove(epic.getId());
         }
     }
 
     public void deleteAllSubTasks() {
-        try {
-            for (SubTask subTask : getSubTasks())
-                subTask.getParent().deleteSubTask(subTask);
-        } catch (NullPointerException e) {
-            //
-        }
+        for (SubTask subTask : getSubTasks())
+            subTask.getParent().deleteSubTask(subTask);
     }
 
     // поиск
@@ -126,18 +110,14 @@ public class TaskManager {
         SubTask subTask = null;
 
         if (!tasks.isEmpty())
-            try {
-                for (Task epic : getElements(Epic.class, false)) {
-                    subTask = ((Epic)epic).getSubTaskForId(id);
-                    if (subTask != null)
-                        // для обычного поиска возвращаем клон
-                        if (isClone)
-                            return subTask.clone();
-                        else
-                            return subTask;
-                }
-            } catch (NullPointerException e) {
-                // не будем обрабатывать
+            for (Task epic : getElements(Epic.class, false)) {
+                subTask = ((Epic) epic).getSubTaskForId(id);
+                if (subTask != null)
+                    // для обычного поиска возвращаем клон
+                    if (isClone)
+                        return subTask.clone();
+                    else
+                        return subTask;
             }
 
         return subTask;
