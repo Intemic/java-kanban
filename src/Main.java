@@ -1,16 +1,34 @@
+import ru.practicum.manager.ITaskManager;
 import ru.practicum.task.*;
-import ru.practicum.manager.TaskManager;
+import ru.practicum.manager.*;
 
 import java.util.ArrayList;
 
 public class Main {
-    static TaskManager manager = new TaskManager();
+    static ITaskManager manager;
     static Task task;
     static Epic epic;
     static SubTask subTask;
     static int id;
 
     public static void main(String[] args) {
+        // тестируем две версии менеджера
+//        System.out.println("--------------------------------------------------");
+//        System.out.println("Тестирование TaskManagerAlternative ");
+//        System.out.println(" ");
+//        manager = new TaskManagerAlternative();
+//        startTests();
+//        System.out.println(" ");
+
+        System.out.println("--------------------------------------------------");
+        System.out.println("Тестирование TaskManager ");
+        System.out.println(" ");
+        manager = new TaskManager();
+        startTests();
+        System.out.println(" ");
+    }
+
+    public static void startTests() {
         System.out.println("До создания");
         printCountStatistic();
         init();
@@ -44,7 +62,6 @@ public class Main {
         manager.deleteAllEpics();
         printCountStatistic();
         printAll();
-
     }
 
     public static void init() {

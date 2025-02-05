@@ -6,154 +6,145 @@ import ru.practicum.task.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
-public class TaskManager {
-    // здесь будем хранить только Task и Epic
+public class TaskManager implements ITaskManager {
     private final HashMap<Integer, Task> tasks = new HashMap<>();
+    private final HashMap<Integer, Epic> epics = new HashMap<>();
+    private final HashMap<Integer, SubTask> subTasks = new HashMap<>();
 
-    // виртуальное создание
+    @Override
     public void create(Task task) {
-        // будем добавлять только Тask и Epic
-        if (task != null && (task.getClass() == Task.class || task.getClass() == Epic.class))
+        if (task == null)
+            return;
+
+        if (task.getClass() == Task.class) {
             tasks.put(task.getId(), task);
-    }
-
-    // все для вывода
-    private <T extends Task> ArrayList<T> getElements(Class<? extends Task> type, boolean isClone) {
-        ArrayList<T> result = new ArrayList<>();
-
-        if (!tasks.isEmpty())
-            for (Map.Entry<Integer, Task> entry : tasks.entrySet())
-                if (entry.getValue().getClass() == type)
-                    // добавляем копии, чтобы не изменили данные, менять можно только через modify
-                    if (isClone)
-                        result.add((T) entry.getValue().clone());
-                        // изменение
-                    else
-                        result.add((T) entry.getValue());
-
-        return result;
-    }
-
-    public ArrayList<Task> getTasks() {
-        return getElements(Task.class, true);
-    }
-
-    public ArrayList<Epic> getEpics() {
-        return getElements(Epic.class, true);
-    }
-
-    public ArrayList<SubTask> getSubTasks() {
-        ArrayList<SubTask> subTasks = new ArrayList<>();
-
-        for (Epic epic : getEpics())
-            // так же добавляем копии
-            for (SubTask subTask : epic.getSubTasks())
-                subTasks.add(subTask.clone());
-
-        return subTasks;
-    }
-
-    public ArrayList<SubTask> getSubTasksForEpic(Epic epic) {
-        ArrayList<SubTask> subTasks = new ArrayList<>();
-
-        for (SubTask subTask : epic.getSubTasks())
-            subTasks.add(subTask.clone());
-
-        return subTasks;
-    }
-
-    // удаление
-    public void deleteAllTasks() {
-        for (Task task : getTasks())
-            tasks.remove(task.getId());
-    }
-
-    public void deleteAllEpics() {
-        for (Epic epic : getEpics()) {
-            // вычищаем подзадачи
-            epic.deleteSubTasks();
-            tasks.remove(epic.getId());
+        } else if (task.getClass() == Epic.class) {
+            epics.put(task.getId(), (Epic)task);
+        } else if (task.getClass() == SubTask.class) {
+            subTasks.put(task.getId(), (SubTask) task);
         }
     }
 
-    public void deleteAllSubTasks() {
-        for (SubTask subTask : getSubTasks())
-            subTask.getParent().deleteSubTask(subTask);
+    // получаем все values конкретного HasMap
+    private <T extends Task> ArrayList<T> getValuesForType(Class<? extends Task> type) {
+        ArrayList<T> elements = new ArrayList<>();
+
+        if (type == Task.class) {
+            elements = (ArrayList<T>) new ArrayList<>(tasks.values());
+        } else if (type == Epic.class) {
+            elements = (ArrayList<T>) new ArrayList<>(epics.values());
+        } else if (type == SubTask.class) {
+            elements = (ArrayList<T>) new ArrayList<>(subTasks.values());
+        }
+
+        return elements;
+    }
+
+    private <T extends Task> ArrayList<T> getElements(Class<? extends Task> type, boolean isClone) {
+        ArrayList<T> elementsCopy = new ArrayList<>();
+
+
+        for (Task element : getValuesForType(type))
+            // возвращаем клонов, кроме изменения
+            if (isClone)
+                elementsCopy.add((T)element.clone());
+            else
+                elementsCopy.add((T)element);
+
+        return elementsCopy;
     }
 
     // поиск
-    private <T extends Task> T getElement(int id, boolean isClone) {
+    private <T extends Task> T getElement(Class<? extends Task> type, int id, boolean isClone) {
         T result = null;
 
-        if (!tasks.isEmpty()) {
-            result = (T) tasks.get(id);
-            if (result != null)
-                // для обычного поиска возвращаем клон
-                if (isClone)
-                    result = (T) result.clone();
-        }
+//        ArrayList<T> elements = getValuesForType( type);
+//
+//        if (!elements.isEmpty()) {
+//            result = (T) elements.get(id);
+//            if (result != null)
+//                // для обычного поиска возвращаем клон
+//                if (isClone)
+//                    result = (T) result.clone();
+//        }
+
+        result = (T) (getElements(type, true).get(id));
+        if (isClone && result != null)
+            result = (T) result.clone();
 
         return result;
     }
 
-    public Task getTask(int id) {
-        return getElement(id, true);
-    }
-
-    public Epic getEpic(int id) {
-        return getElement(id, true);
-    }
-
-    private SubTask getSubTaskInner(int id, boolean isClone) {
-        SubTask subTask = null;
-
-        if (!tasks.isEmpty())
-            for (Task epic : getElements(Epic.class, false)) {
-                subTask = ((Epic) epic).getSubTaskForId(id);
-                if (subTask != null)
-                    // для обычного поиска возвращаем клон
-                    if (isClone)
-                        return subTask.clone();
-                    else
-                        return subTask;
-            }
-
-        return subTask;
-    }
-
-    public SubTask getSubTask(int id) {
-        return getSubTaskInner(id, true);
-    }
-
-    // обновление
-    public <T extends Task> void modifyElement(T element) {
+    private <T extends Task> void modifyElement(Class<? extends Task> type, T element) {
         T oldElement;
 
         if (element != null) {
-            oldElement = getElement(element.getId(), false);
+            oldElement = getElement(type, element.getId(),false);
             if (oldElement != null)
                 oldElement.update(element);
         }
     }
 
+    @Override
+    public ArrayList<Task> getTasks() {
+        return getElements(Task.class, true);
+    }
+
+    @Override
+    public ArrayList<Epic> getEpics() {
+        return getElements(Epic.class, true);
+    }
+
+    @Override
+    public ArrayList<SubTask> getSubTasks() {
+        return getElements(SubTask.class, true);
+    }
+
+    @Override
+    public void deleteAllTasks() {
+        tasks.clear();
+    }
+
+    @Override
+    public void deleteAllEpics() {
+        epics.clear();
+    }
+
+    @Override
+    public void deleteAllSubTasks() {
+
+        // TODO Необходимо реализовать удаление в связанных эпиках
+        subTasks.clear();
+    }
+
+    @Override
+    public Task getTask(int id) {
+        return getElement(Task.class, id, true);
+    }
+
+    @Override
+    public Epic getEpic(int id) {
+        return getElement(Epic.class, id, true);
+    }
+
+    @Override
+    public SubTask getSubTask(int id) {
+        return getElement(SubTask.class, id, true);
+    }
+
+    @Override
     public void modifyTask(Task task) {
-        modifyElement(task);
+        modifyElement(Task.class, task);
     }
 
+    @Override
     public void modifyEpic(Epic epic) {
-        modifyElement(epic);
+        modifyElement(Epic.class, epic);
     }
 
+    @Override
     public void modifySubTask(SubTask subTask) {
-        SubTask oldSubTask;
-
-        if (subTask != null) {
-            oldSubTask = getSubTaskInner(subTask.getId(), false);
-            if (oldSubTask != null)
-                oldSubTask.update(subTask);
-        }
+        modifyElement(SubTask.class, subTask);
     }
-
 }
