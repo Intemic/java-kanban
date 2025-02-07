@@ -7,15 +7,17 @@ import ru.practicum.task.Task;
 import java.util.ArrayList;
 
 public interface ITaskManager {
-    void create(Task task);
+    void createTask(Task task);
+
+    void createEpic(Epic epic);
+
+    void createSubTask(SubTask subTask);
 
     ArrayList<Task> getTasks();
 
     ArrayList<Epic> getEpics();
 
     ArrayList<SubTask> getSubTasks();
-
-    //ArrayList<SubTask> getSubTasksForEpic(Epic epic);
 
     void deleteAllTasks();
 

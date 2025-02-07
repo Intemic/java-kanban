@@ -1,34 +1,31 @@
 package ru.practicum.task;
 
 public class SubTask extends Task {
-    private Epic parent;
+    private int parentId;
 
     private SubTask(SubTask subTask) {
         super(subTask);
-        this.parent = subTask.parent;
+        this.parentId = subTask.parentId;
     }
 
     public SubTask(String name, String description, Epic epic) {
         super(name, description);
-        this.parent = epic;
-        if (epic != null)
-            epic.addSubTask(this);
+
+        // нет смысла создавать без связки, без связки это обычная задача
+        if (epic == null)
+            throw new NullPointerException();
+
+        epic.addSubTask(this);
+        this.parentId = epic.getId();
     }
 
-    public Epic getParent() {
-        return parent;
+    public int getParentId() {
+        return parentId;
     }
 
     public void update(SubTask subTask) {
         // не будем позволять менять родителя
         super.update(subTask);
-    }
-
-    public void setStatus(Status status) {
-        super.setStatus(status);
-        // обновим статус у Эпика
-        if (status != null && parent != null)
-            parent.updateStatus();
     }
 
     @Override
@@ -47,11 +44,12 @@ public class SubTask extends Task {
 
         positionStatus = result.indexOf("status");
         if (positionStatus != -1) {
-            if (parent != null)
-                parentValues = parent.getClass().getSimpleName()
-                        + "{id=" + parent.getId() + ", name=" + parent.getName() + "}";
+            if (parentId != 0)
+                parentValues = "Epic"
+                        + "{id=" + getParentId() + "}";
             result = new StringBuffer(result).insert(positionStatus, "parent=" + parentValues + ", ").toString();
         }
+
 
         return result;
     }

@@ -25,10 +25,15 @@ public class Epic extends Task {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public Status getStatus() {
+        updateStatus();
+        return status;
+    }
+
     /*
-                доступ на уровне пакета, добавлять могут только классы данного пакета,
-                закроем от менеджера и основного класса
-        */
+    недоступно извне, вызывает подзадача
+    */
     void addSubTask(SubTask subTask) {
         if (subTask != null) {
             subTasks.put(subTask.getId(), subTask);
@@ -50,6 +55,10 @@ public class Epic extends Task {
 
     public ArrayList<SubTask> getSubTasks() {
         return new ArrayList<>(subTasks.values());
+    }
+
+    public void deleteSubTask(int id) {
+        subTasks.remove(id);
     }
 
     public void deleteSubTasks() {

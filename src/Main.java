@@ -13,19 +13,23 @@ public class Main {
 
     public static void main(String[] args) {
         // тестируем две версии менеджера
-//        System.out.println("--------------------------------------------------");
-//        System.out.println("Тестирование TaskManagerAlternative ");
-//        System.out.println(" ");
-//        manager = new TaskManagerAlternative();
-//        startTests();
-//        System.out.println(" ");
-
-        System.out.println("--------------------------------------------------");
-        System.out.println("Тестирование TaskManager ");
-        System.out.println(" ");
-        manager = new TaskManager();
-        startTests();
-        System.out.println(" ");
+        if (args.length != 0) {
+            System.out.println("++++++++++++++++++++++++++++++++++++++++++");
+            System.out.println("Тестирование TaskManagerAlternative ");
+            System.out.println("++++++++++++++++++++++++++++++++++++++++++");
+            System.out.println(" ");
+            manager = new TaskManagerAlternative();
+            startTests();
+            System.out.println(" ");
+        } else {
+            System.out.println("++++++++++++++++++++++++++++++++++++++++++");
+            System.out.println("Тестирование TaskManager ");
+            System.out.println("++++++++++++++++++++++++++++++++++++++++++");
+            System.out.println(" ");
+            manager = new TaskManager();
+            startTests();
+            System.out.println(" ");
+        }
     }
 
     public static void startTests() {
@@ -45,7 +49,10 @@ public class Main {
         printAll();
         System.out.println(" ");
 
+        testDelete();
+    }
 
+    public static void testDelete() {
         System.out.println("После удаления подзадач");
         manager.deleteAllSubTasks();
         printCountStatistic();
@@ -67,7 +74,7 @@ public class Main {
     public static void init() {
         for (int i = 0; i < 2; i++) {
             task = new Task("Обычная задача № " + (i + 1), "Выполнить задачу обязательно " + (i + 1));
-            manager.create(task);
+            manager.createTask(task);
         }
 
         epic = new Epic("Эпик № 1", "Будем тестировать эпик 1, шаги: ");
@@ -79,12 +86,21 @@ public class Main {
             subTask = new SubTask("Подзадача № " + (i + 1),
                     "необходимо выполнить " + (i + 1) + " действие", epic);
         }
-        manager.create(epic);
+        manager.createEpic(epic);
 
         epic = new Epic("Эпик № 2", "Будем тестировать эпик 2, шаги: ");
         subTask = new SubTask("Подзадача № 1",
                 " Что то необходимо выполнить ", epic);
-        manager.create(epic);
+        manager.createEpic(epic);
+
+        System.out.println("Попробуем создать позадачу без ссылки ны эпик");
+        try {
+            subTask = new SubTask("Эпик № N", "Тестировние без ссылки", null);
+            System.out.println("Успешно создано");
+        } catch (Exception e) {
+            System.out.println("Не удалось создать");
+        }
+        System.out.println("");
     }
 
     public static void printCountStatistic() {
@@ -190,18 +206,21 @@ public class Main {
         System.out.println("Проверим что изменяется только копия");
         task = manager.getTask(id);
         System.out.println("До изменения: " + task);
-        task.setName("НОВОЕ ЗНАЧЕНИЕ");
-        task = manager.getTask(id);
-        System.out.println("После изменения : " + task);
-        System.out.println(" ");
+        if (task != null) {
+            task.setName("НОВОЕ ЗНАЧЕНИЕ");
+            task = manager.getTask(id);
+            System.out.println("После изменения : " + task);
 
-        task = manager.getTask(id);
-        task.setName(task.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
-        task.setStatus(Status.DONE);
-        manager.modifyTask(task);
-        task = manager.getTask(id);
-        System.out.println("После изменения задачи");
-        System.out.println(task);
+            System.out.println(" ");
+
+            task = manager.getTask(id);
+            task.setName(task.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
+            task.setStatus(Status.DONE);
+            manager.modifyTask(task);
+            task = manager.getTask(id);
+            System.out.println("После изменения задачи");
+            System.out.println(task);
+        }
         System.out.println(" ");
 
 
@@ -211,17 +230,19 @@ public class Main {
         System.out.println("Проверим что изменяется только копия");
         epic = manager.getEpic(id);
         System.out.println("До изменения: " + epic);
-        epic.setName(epic.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
-        epic = manager.getEpic(id);
-        System.out.println("После изменения : " + epic);
-        System.out.println(" ");
+        if (epic != null) {
+            epic.setName(epic.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
+            epic = manager.getEpic(id);
+            System.out.println("После изменения : " + epic);
+            System.out.println(" ");
 
-        epic = manager.getEpic(id);
-        epic.setName(epic.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
-        manager.modifyEpic(epic);
-        task = manager.getEpic(id);
-        System.out.println("После изменения: ");
-        System.out.println(epic);
+            epic = manager.getEpic(id);
+            epic.setName(epic.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
+            manager.modifyEpic(epic);
+            task = manager.getEpic(id);
+            System.out.println("После изменения: ");
+            System.out.println(epic);
+        }
         System.out.println(" ");
 
         id = 7;
@@ -230,35 +251,38 @@ public class Main {
         System.out.println("Проверим что изменяется только копия");
         subTask = manager.getSubTask(id);
         System.out.println("До изменения: " + subTask);
-        subTask.setName(subTask.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
-        subTask = manager.getSubTask(id);
-        System.out.println("После изменения : " + subTask);
-        System.out.println(" ");
+        if (subTask != null) {
+            subTask.setName(subTask.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
+            subTask = manager.getSubTask(id);
+            System.out.println("После изменения : " + subTask);
+            System.out.println(" ");
 
-        subTask = manager.getSubTask(id);
-        subTask.setName(subTask.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
-        subTask.setStatus(Status.IN_PROGRESS);
-        manager.modifySubTask(subTask);
-        subTask = manager.getSubTask(id);
-        System.out.println("После изменения: ");
-        System.out.println(subTask);
-        System.out.println(" ");
-
-        id = 4;
-        subTask = manager.getSubTask(id);
-        subTask.setStatus(Status.IN_PROGRESS);
-        epic = manager.getEpic(3);
-        System.out.println(epic);
+            subTask = manager.getSubTask(id);
+            subTask.setName(subTask.getName() + " ИЗМЕНЕНОЕ ЗНАЧЕНИЕ!!!!!!!!!!!!!!!!!");
+            subTask.setStatus(Status.IN_PROGRESS);
+            manager.modifySubTask(subTask);
+            subTask = manager.getSubTask(id);
+            System.out.println("После изменения: ");
+            System.out.println(subTask);
+        }
         System.out.println(" ");
 
         id = 4;
         subTask = manager.getSubTask(id);
-        subTask.setStatus(Status.IN_PROGRESS);
-        manager.modifySubTask(subTask);
+        if (subTask != null) {
+            subTask.setStatus(Status.IN_PROGRESS);
+            epic = manager.getEpic(3);
+            System.out.println(epic);
+            System.out.println(" ");
+        }
+
+        id = 4;
         subTask = manager.getSubTask(id);
-        System.out.println(" ");
-
-
-
+        if (subTask != null) {
+            subTask.setStatus(Status.IN_PROGRESS);
+            manager.modifySubTask(subTask);
+            subTask = manager.getSubTask(id);
+            System.out.println(" ");
+        }
     }
 }

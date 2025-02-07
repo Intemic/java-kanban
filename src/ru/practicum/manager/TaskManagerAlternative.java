@@ -12,11 +12,30 @@ public class TaskManagerAlternative implements ITaskManager {
     // здесь будем хранить только Task и Epic
     private final HashMap<Integer, Task> tasks = new HashMap<>();
 
-    // виртуальное создание
-    public void create(Task task) {
+//    public TaskManagerAlternative() {
+//        super();
+//    }
+
+    private void create(Task task) {
         // будем добавлять только Тask и Epic
         if (task != null && (task.getClass() == Task.class || task.getClass() == Epic.class))
             tasks.put(task.getId(), task);
+    }
+
+    // виртуальное создание
+    @Override
+    public void createTask(Task task) {
+        create(task);
+    }
+
+    @Override
+    public void createEpic(Epic epic) {
+        create(epic);
+    }
+
+    @Override
+    public void createSubTask(SubTask subTask) {
+        // здесь ничего не делаем так как храним только Тask и Epic
     }
 
     // все для вывода
@@ -70,8 +89,10 @@ public class TaskManagerAlternative implements ITaskManager {
     }
 
     public void deleteAllSubTasks() {
-        for (SubTask subTask : getSubTasks())
-            subTask.getParent().deleteSubTask(subTask);
+//        for (SubTask subTask : getSubTasks())
+//            subTask.getParent().deleteSubTask(subTask);
+        for (Epic epic : getEpics())
+            epic.deleteSubTasks();
     }
 
     // поиск
