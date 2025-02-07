@@ -12,10 +12,6 @@ public class TaskManagerAlternative implements ITaskManager {
     // здесь будем хранить только Task и Epic
     private final HashMap<Integer, Task> tasks = new HashMap<>();
 
-//    public TaskManagerAlternative() {
-//        super();
-//    }
-
     private void create(Task task) {
         // будем добавлять только Тask и Epic
         if (task != null && (task.getClass() == Task.class || task.getClass() == Epic.class))
@@ -89,8 +85,6 @@ public class TaskManagerAlternative implements ITaskManager {
     }
 
     public void deleteAllSubTasks() {
-//        for (SubTask subTask : getSubTasks())
-//            subTask.getParent().deleteSubTask(subTask);
         for (Epic epic : getEpics())
             epic.deleteSubTasks();
     }
