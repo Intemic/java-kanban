@@ -1,11 +1,11 @@
-import ru.practicum.manager.ITaskManager;
+import ru.practicum.manager.TaskManager;
 import ru.practicum.task.*;
 import ru.practicum.manager.*;
 
 import java.util.ArrayList;
 
 public class Main {
-    static ITaskManager manager;
+    static TaskManager manager;
     static Task task;
     static Epic epic;
     static SubTask subTask;
@@ -18,7 +18,7 @@ public class Main {
             System.out.println("Тестирование TaskManagerAlternative ");
             System.out.println("++++++++++++++++++++++++++++++++++++++++++");
             System.out.println(" ");
-            manager = new TaskManagerAlternative();
+            manager = new InTaskManagerAlternative();
             startTests();
             System.out.println(" ");
         } else {
@@ -26,7 +26,7 @@ public class Main {
             System.out.println("Тестирование TaskManager ");
             System.out.println("++++++++++++++++++++++++++++++++++++++++++");
             System.out.println(" ");
-            manager = new TaskManager();
+            manager = new InMemoryTaskManager();
             startTests();
             System.out.println(" ");
         }

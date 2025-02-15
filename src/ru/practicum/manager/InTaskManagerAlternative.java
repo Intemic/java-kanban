@@ -6,9 +6,10 @@ import ru.practicum.task.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class TaskManagerAlternative implements ITaskManager {
+public class InTaskManagerAlternative implements TaskManager {
     // здесь будем хранить только Task и Epic
     private final HashMap<Integer, Task> tasks = new HashMap<>();
 
@@ -160,6 +161,11 @@ public class TaskManagerAlternative implements ITaskManager {
             if (oldSubTask != null)
                 oldSubTask.update(subTask);
         }
+    }
+
+    @Override
+    public List<Task> getHistory() {
+        return null;
     }
 
 }
