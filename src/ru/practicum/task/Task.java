@@ -18,6 +18,12 @@ public class Task {
     }
 
     public Task(String name, String description) {
+        if (name == null || name.isEmpty())
+            throw new NullPointerException();
+
+        if (description == null || description.isEmpty())
+            throw new NullPointerException();
+
         this.id = ++uid;
         this.name = name;
         this.description = description;

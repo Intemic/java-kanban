@@ -1,5 +1,6 @@
 package ru.practicum.manager;
 
+import ru.practicum.history.HistoryManager;
 import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
@@ -9,9 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InTaskManagerAlternative implements TaskManager {
+public class InMemoryTaskManagerAlternative implements TaskManager {
     // здесь будем хранить только Task и Epic
     private final HashMap<Integer, Task> tasks = new HashMap<>();
+    private final HistoryManager history = Managers.getDefaultHistory();
 
     private void create(Task task) {
         // будем добавлять только Тask и Epic
@@ -102,6 +104,8 @@ public class InTaskManagerAlternative implements TaskManager {
                     result = (T) result.clone();
         }
 
+        history.add(result);
+
         return result;
     }
 
@@ -121,6 +125,8 @@ public class InTaskManagerAlternative implements TaskManager {
                 subTask = ((Epic) epic).getSubTaskForId(id);
                 if (subTask != null)
                     // для обычного поиска возвращаем клон
+                    history.add(subTask);
+
                     if (isClone)
                         return subTask.clone();
                     else
@@ -165,7 +171,7 @@ public class InTaskManagerAlternative implements TaskManager {
 
     @Override
     public List<Task> getHistory() {
-        return null;
+        return history.getHistory();
     }
 
 }

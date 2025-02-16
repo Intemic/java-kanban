@@ -18,7 +18,7 @@ public class Main {
             System.out.println("Тестирование TaskManagerAlternative ");
             System.out.println("++++++++++++++++++++++++++++++++++++++++++");
             System.out.println(" ");
-            manager = new InTaskManagerAlternative();
+            manager = new InMemoryTaskManagerAlternative();
             startTests();
             System.out.println(" ");
         } else {

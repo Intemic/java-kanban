@@ -18,7 +18,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (task == null)
             return;
 
-        if (config.getMaxSize() != 0 && history.size() == config.getMaxSize()) {
+        if (config.isExistLimit() && history.size() == config.getMaxSize()) {
             history.removeFirst();
         }
 

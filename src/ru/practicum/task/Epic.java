@@ -67,9 +67,14 @@ public class Epic extends Task {
         updateStatus();
     }
 
-    public void update(Epic epic) {
-        if (epic != null && this.getId() == epic.getId()) {
-            super.update(epic);
+    @Override
+    public void update(Task task) {
+
+//    public void update(Epic epic) {
+        if (task != null && task.getClass() == Epic.class && this.getId() == task.getId()) {
+            super.update(task);
+
+            Epic epic = (Epic)task;
             subTasks.clear();
             try {
                 for (SubTask subTask : epic.getSubTasks())

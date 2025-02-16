@@ -23,9 +23,13 @@ public class SubTask extends Task {
         return parentId;
     }
 
-    public void update(SubTask subTask) {
+    @Override
+    public void update(Task task) {
         // не будем позволять менять родителя
-        super.update(subTask);
+        if (task != null && task.getClass() == SubTask.class) {
+            SubTask subTask = (SubTask) task;
+            super.update(subTask);
+        }
     }
 
     @Override

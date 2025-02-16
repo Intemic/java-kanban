@@ -49,8 +49,6 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NotFoundException();
 
         subTasks.put(subTask.getId(), subTask);
-//        // добавим в эпик
-//        epic.addSubTask(subTask);
     }
 
     // получаем все values конкретного HasMap
