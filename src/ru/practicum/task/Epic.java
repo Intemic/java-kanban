@@ -44,7 +44,7 @@ public class Epic extends Task {
 
         if (countNew == subTasks.size())
             status = Status.NEW;
-        else
+        else if (status != Status.DONE)
             status = Status.IN_PROGRESS;
 
         return status;
