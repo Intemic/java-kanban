@@ -32,6 +32,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         epics.put(epic.getId(), epic);
         // добавляем подзадачи, вдруг еще не присутствуют
+        // без цикла не получится getSubTasks() возвращает ArrayList
         for (SubTask subTask : epic.getSubTasks())
             subTasks.put(subTask.getId(), subTask);
     }

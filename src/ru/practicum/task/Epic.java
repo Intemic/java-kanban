@@ -16,7 +16,6 @@ public class Epic extends Task {
 
     public Epic(String name, String description) {
         super(name, description);
-        updateStatus();
     }
 
     @Override
@@ -27,7 +26,27 @@ public class Epic extends Task {
 
     @Override
     public Status getStatus() {
-        updateStatus();
+        int countNew = 0;
+
+        if (subTasks.isEmpty()) {
+            status = Status.NEW;
+            return status;
+        }
+
+        status = Status.DONE;
+
+        for (SubTask obj : subTasks.values()) {
+            if (obj.getStatus().ordinal() < status.ordinal())
+                status = obj.status;
+            if (obj.getStatus() == Status.NEW)
+                countNew++;
+        }
+
+        if (countNew == subTasks.size())
+            status = Status.NEW;
+        else
+            status = Status.IN_PROGRESS;
+
         return status;
     }
 
@@ -37,8 +56,6 @@ public class Epic extends Task {
     void addSubTask(SubTask subTask) {
         if (subTask != null) {
             subTasks.put(subTask.getId(), subTask);
-            // обновим статус
-            updateStatus();
         }
     }
 
@@ -47,9 +64,6 @@ public class Epic extends Task {
 
         if (subTask != null) {
             result = subTasks.remove(subTask.getId()) != null;
-            // обновим статус
-            if (result)
-                updateStatus();
         }
     }
 
@@ -63,8 +77,6 @@ public class Epic extends Task {
 
     public void deleteSubTasks() {
         subTasks.clear();
-        // обновим статус
-        updateStatus();
     }
 
     @Override
@@ -81,35 +93,11 @@ public class Epic extends Task {
                     subTasks.put(subTask.getId(), subTask);
             } catch (NullPointerException e) {
             }
-
-            // обновим статус
-            updateStatus();
         }
     }
 
     public SubTask getSubTaskForId(int id) {
         return subTasks.get(id);
-    }
-
-    void updateStatus() {
-        if (subTasks.isEmpty()) {
-            status = Status.NEW;
-            return;
-        }
-
-        HashMap<Status, Integer> countStatus = new HashMap<>();
-        for (Map.Entry<Integer, SubTask> entry : subTasks.entrySet()) {
-            Status status = entry.getValue().getStatus();
-            countStatus.put(status, countStatus.get(status) != null ? countStatus.get(status) + 1 : 1);
-        }
-
-        for (Map.Entry<Status, Integer> entry : countStatus.entrySet())
-            if (entry.getValue() == subTasks.size()) {
-                status = entry.getKey();
-                return;
-            }
-
-        status = Status.IN_PROGRESS;
     }
 
     @Override

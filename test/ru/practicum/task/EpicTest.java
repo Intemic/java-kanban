@@ -64,7 +64,11 @@ class EpicTest {
 
         subTask2.setStatus(Status.DONE);
         assertEquals(Status.IN_PROGRESS, epic.getStatus(),
-                "Не корректный статус, должен быть DONE, текущий - " + epic.getStatus());
+                "Не корректный статус, должен быть IN_PROGRESS, текущий - " + epic.getStatus());
+
+        subTask.setStatus(Status.NEW);
+        assertEquals(Status.IN_PROGRESS, epic.getStatus(),
+                "Не корректный статус, должен быть IN_PROGRESS, текущий - " + epic.getStatus());
 
         epic.deleteSubTasks();
         assertEquals(Status.NEW, epic.getStatus(),
