@@ -104,7 +104,7 @@ public class InMemoryTaskManagerAlternative implements TaskManager {
                     result = (T) result.clone();
         }
 
-        history.add(result);
+        history.add(result.clone());
 
         return result;
     }
@@ -125,7 +125,7 @@ public class InMemoryTaskManagerAlternative implements TaskManager {
                 subTask = ((Epic) epic).getSubTaskForId(id);
                 if (subTask != null)
                     // для обычного поиска возвращаем клон
-                    history.add(subTask);
+                    history.add(subTask.clone());
 
                     if (isClone)
                         return subTask.clone();

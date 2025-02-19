@@ -99,7 +99,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (isClone && result != null)
             result = (T) result.clone();
 
-        history.add(result);
+        history.add(result.clone());
 
         return result;
     }

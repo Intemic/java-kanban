@@ -7,8 +7,7 @@ import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class InTaskManagerBaseTest{
     private TaskManager taskManager;
@@ -173,6 +172,15 @@ public abstract class InTaskManagerBaseTest{
         assertEquals(epic, taskManager.getHistory().get(1), "Не корректная работа истории");
         assertEquals(3, taskManager.getHistory().size(), "Не корректная работа истории");
         assertEquals(subTask, taskManager.getHistory().get(2), "Не корректная работа истории");
+
+        SubTask subTaskChanged = subTask.clone();
+        subTaskChanged.setName(subTaskChanged.getName() + " Изменен");
+        subTaskChanged.setDescription(subTaskChanged.getDescription() + " Изменен");
+        taskManager.modifySubTask(subTaskChanged);
+
+        assertNotEquals(taskManager.getHistory().get(2).getName(), subTaskChanged.getName());
+        assertNotEquals(taskManager.getHistory().get(2).getDescription(), subTaskChanged.getDescription());
+
     }
 
 }
