@@ -13,16 +13,20 @@ public class ConfigHistoryManager {
         setMaxSize(maxSize);
     }
 
-    private void setMaxSize(int maxSize) {
-        if (maxSize > 0) {
-            this.maxSize = maxSize;
-            isExistLimit = true;
-        }
+    public ConfigHistoryManager(boolean isNotDublicate) {
+        this.isNotDublicate = isNotDublicate;
     }
 
     public ConfigHistoryManager(int maxSize, boolean isNotDublicate) {
         this(maxSize);
         this.isNotDublicate = isNotDublicate;
+    }
+
+    private void setMaxSize(int maxSize) {
+        if (maxSize > 0) {
+            this.maxSize = maxSize;
+            isExistLimit = true;
+        }
     }
 
     public int getMaxSize() {

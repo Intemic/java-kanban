@@ -12,6 +12,6 @@ public class Managers {
     }
 
     public static HistoryManager getDefaultHistory( ) {
-        return new InMemoryHistoryManager(new ConfigHistoryManager(MAX_RECORD_IN_HISTORY));
+        return new InMemoryHistoryManager(new ConfigHistoryManager(true));
     }
 }

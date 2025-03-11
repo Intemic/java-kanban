@@ -2,12 +2,10 @@ package ru.practicum.history;
 
 import ru.practicum.task.Task;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private LinkedList<Task> history = new LinkedList<>();
+    private LinkedTaskList history = new LinkedTaskList();
     private ConfigHistoryManager config;
 
     public InMemoryHistoryManager(ConfigHistoryManager config) {
@@ -24,19 +22,19 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         if (config.isNotDublicate() && history.contains(task))
-            return;
+            remove(task.getId());
 
         history.addLast(task);
     }
 
     @Override
     public void remove(int id) {
-
+        history.remove(id);
     }
 
     @Override
     public List<Task> getHistory() {
-        return new LinkedList<>(history);
+        return history.toList(); //new LinkedList<>(history);
     }
 
     private class LinkedTaskList {
@@ -45,17 +43,28 @@ public class InMemoryHistoryManager implements HistoryManager {
         private Node<Task> tail;
 
         public void addLast(Task task) {
+//            remove(task.getId());
+
             Node<Task> node = new Node<>(tail, null, task);
+            if (tail != null)
+                tail.setNext(node);
+
             tail = node;
+
             if (head == null)
                 head = node;
 
             linkedList.put(task.getId(), node);
         }
 
-        public void remove(Task task) {
-            if (linkedList.containsKey(task.getId())) {
-                Node<Task> current = linkedList.remove(task.getId());
+        public void removeFirst() {
+            if (head != null)
+                remove(head.getData().getId());
+        }
+
+        public void remove(int id) {
+            if (linkedList.containsKey(id)) {
+                Node<Task> current = linkedList.remove(id);
 
                 if (current.equals(head)) {
                     head = current.getNext();
@@ -74,11 +83,49 @@ public class InMemoryHistoryManager implements HistoryManager {
 
                 if (current.getNext() != null)
                     current.getNext().setPrev(current.getPrev());
-                }
+            }
         }
 
         public int size() {
             return linkedList.size();
         }
+
+        public boolean contains(Task task) {
+            return linkedList.containsKey(task.getId());
+        }
+
+        private Iterable<Task> iterable() {
+            return new Iterable<Task>() {
+                Node<Task> current = head;
+
+                @Override
+                public Iterator<Task> iterator() {
+
+                    return new Iterator<Task>() {
+                        @Override
+                        public boolean hasNext() {
+                            return current != null;
+                        }
+
+                        @Override
+                        public Task next() {
+                            Task task = current.getData();
+                            current = current.getNext();
+
+                            return task;
+                        }
+                    };
+                }
+            };
+        }
+
+        public List<Task> toList() {
+            List<Task> list = new LinkedList<>();
+            for (Task task : iterable())
+                list.add(task);
+
+            return list;
+        }
+
     }
 }
