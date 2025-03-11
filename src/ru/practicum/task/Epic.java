@@ -92,6 +92,7 @@ public class Epic extends Task {
                 for (SubTask subTask : epic.getSubTasks())
                     subTasks.put(subTask.getId(), subTask);
             } catch (NullPointerException e) {
+                System.out.println("Ошибка");
             }
         }
     }
