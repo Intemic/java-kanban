@@ -120,7 +120,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         public List<Task> toList() {
-            List<Task> list = new LinkedList<>();
+            List<Task> list = new ArrayList<>(size());
             for (Task task : iterable())
                 list.add(task);
 
