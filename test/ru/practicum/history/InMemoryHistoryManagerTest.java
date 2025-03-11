@@ -22,7 +22,7 @@ class InMemoryHistoryManagerTest {
     @BeforeEach
     public void initial() {
         configLimitIgnore = new ConfigHistoryManager(3, true);
-        configNoLimit = new ConfigHistoryManager( false);
+        configNoLimit = new ConfigHistoryManager(false);
 
         task = new Task("Новая задача", "что то делаем");
         epic = new Epic("Новый эпик", "что то делаем");

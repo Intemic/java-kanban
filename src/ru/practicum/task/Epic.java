@@ -86,7 +86,7 @@ public class Epic extends Task {
         if (task != null && task.getClass() == Epic.class && this.getId() == task.getId()) {
             super.update(task);
 
-            Epic epic = (Epic)task;
+            Epic epic = (Epic) task;
             subTasks.clear();
             try {
                 for (SubTask subTask : epic.getSubTasks())

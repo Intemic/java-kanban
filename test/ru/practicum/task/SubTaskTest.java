@@ -41,6 +41,6 @@ class SubTaskTest {
         subTaskClone = subTask.clone();
 
         // все остально проверяется в Task
-        assertEquals(subTask.getId(), subTaskClone.getId(), "Ошибка клонирования id" );
+        assertEquals(subTask.getId(), subTaskClone.getId(), "Ошибка клонирования id");
     }
 }

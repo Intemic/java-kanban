@@ -137,10 +137,10 @@ public class InMemoryTaskManagerAlternative implements TaskManager {
                     // для обычного поиска возвращаем клон
                     history.add(subTask.clone());
 
-                    if (isClone)
-                        return subTask.clone();
-                    else
-                        return subTask;
+                if (isClone)
+                    return subTask.clone();
+                else
+                    return subTask;
             }
 
         return subTask;

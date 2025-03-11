@@ -9,7 +9,7 @@ import ru.practicum.task.Task;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public abstract class InTaskManagerBaseTest{
+public abstract class InTaskManagerBaseTest {
     private TaskManager taskManager;
     private Task task;
     private Epic epic;
