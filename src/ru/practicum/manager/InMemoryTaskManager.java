@@ -70,7 +70,6 @@ public class InMemoryTaskManager implements TaskManager {
     private <T extends Task> ArrayList<T> getElements(Class<? extends Task> type, boolean isClone) {
         ArrayList<T> elementsCopy = new ArrayList<>();
 
-
         for (Task element : getValuesForType(type))
             // возвращаем клонов, кроме изменения
             if (isClone)
@@ -99,7 +98,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (isClone && result != null)
             result = (T) result.clone();
 
-        history.add(result.clone());
+        if (result != null)
+            history.add(result.clone());
 
         return result;
     }
@@ -141,13 +141,10 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteAllEpics() {
         deleteAllSubTasks();
 
-        for (Epic epic : epics.values()) {
+        for (Epic epic : new ArrayList<>(epics.values())) {
             history.remove(epic.getId());
             epics.remove(epic.getId());
         }
-
-        //epics.clear();
-        //subTasks.clear();
     }
 
     @Override

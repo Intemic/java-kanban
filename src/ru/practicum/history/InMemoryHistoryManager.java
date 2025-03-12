@@ -38,14 +38,12 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private class LinkedTaskList {
-        private HashMap<Integer, Node<Task>> linkedList = new HashMap<>();
-        private Node<Task> head;
-        private Node<Task> tail;
+        private HashMap<Integer, Node> linkedList = new HashMap<>();
+        private Node head;
+        private Node tail;
 
         public void addLast(Task task) {
-//            remove(task.getId());
-
-            Node<Task> node = new Node<>(tail, null, task);
+            Node node = new Node(tail, null, task);
             if (tail != null)
                 tail.setNext(node);
 
@@ -64,7 +62,7 @@ public class InMemoryHistoryManager implements HistoryManager {
 
         public void remove(int id) {
             if (linkedList.containsKey(id)) {
-                Node<Task> current = linkedList.remove(id);
+                Node current = linkedList.remove(id);
 
                 if (current.equals(head)) {
                     head = current.getNext();
@@ -94,38 +92,66 @@ public class InMemoryHistoryManager implements HistoryManager {
             return linkedList.containsKey(task.getId());
         }
 
-        private Iterable<Task> iterable() {
-            return new Iterable<Task>() {
-                Node<Task> current = head;
+        private Iterator<Task> iterator() {
+            return new Iterator<Task>() {
+                Node current = head;
 
                 @Override
-                public Iterator<Task> iterator() {
+                public boolean hasNext() {
+                    return current != null;
+                }
 
-                    return new Iterator<Task>() {
-                        @Override
-                        public boolean hasNext() {
-                            return current != null;
-                        }
+                @Override
+                public Task next() {
+                    Task task = current.getData();
+                    current = current.getNext();
 
-                        @Override
-                        public Task next() {
-                            Task task = current.getData();
-                            current = current.getNext();
-
-                            return task;
-                        }
-                    };
+                    return task;
                 }
             };
         }
 
         public List<Task> toList() {
             List<Task> list = new ArrayList<>(size());
-            for (Task task : iterable())
-                list.add(task);
+            Iterator<Task> iterator = iterator();
+
+            while (iterator.hasNext())
+                list.add(iterator.next());
 
             return list;
         }
 
+    }
+
+    private static class Node {
+        private Node prev;
+        private Node next;
+        private final Task data;
+
+        public Node(Node prev, Node next, Task data) {
+            this.prev = prev;
+            this.next = next;
+            this.data = data;
+        }
+
+        public Node getPrev() {
+            return prev;
+        }
+
+        public Node getNext() {
+            return next;
+        }
+
+        public Task getData() {
+            return data;
+        }
+
+        public void setPrev(Node prev) {
+            this.prev = prev;
+        }
+
+        public void setNext(Node next) {
+            this.next = next;
+        }
     }
 }
