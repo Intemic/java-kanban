@@ -9,7 +9,7 @@ import ru.practicum.task.Task;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public abstract class InTaskManagerBaseTest{
+public abstract class InTaskManagerBaseTest {
     private TaskManager taskManager;
     private Task task;
     private Epic epic;
@@ -183,4 +183,34 @@ public abstract class InTaskManagerBaseTest{
 
     }
 
+    @DisplayName("Проверка удаления из истории")
+    @Test
+    public void testDeleteFromHistory() {
+        taskManager.createTask(task);
+        taskManager.createEpic(epic);
+        taskManager.createSubTask(subTask);
+
+        taskManager.getTask(task.getId());
+        taskManager.getEpic(epic.getId());
+        taskManager.getSubTask(subTask.getId());
+
+        assertEquals(3, taskManager.getHistory().size(), "Ошибки в работе истории");
+
+        taskManager.deleteAllTasks();
+        assertEquals(2, taskManager.getHistory().size(), "Ошибки в работе истории");
+        assertFalse(taskManager.getHistory().contains(task.getId()),
+                "Ошибки в работе истории при удалении задач");
+
+        taskManager.deleteAllSubTasks();
+        assertEquals(1, taskManager.getHistory().size(), "Ошибки в работе истории");
+        assertFalse(taskManager.getHistory().contains(subTask.getId()),
+                "Ошибки в работе истории при удалении подзадач");
+
+        taskManager.createSubTask(subTask);
+        taskManager.getSubTask(subTask.getId());
+
+        taskManager.deleteAllEpics();
+        assertEquals(0, taskManager.getHistory().size(),
+                "Ошибки в работе истории, при удалении эпиков");
+    }
 }

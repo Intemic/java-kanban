@@ -70,7 +70,6 @@ public class InMemoryTaskManager implements TaskManager {
     private <T extends Task> ArrayList<T> getElements(Class<? extends Task> type, boolean isClone) {
         ArrayList<T> elementsCopy = new ArrayList<>();
 
-
         for (Task element : getValuesForType(type))
             // возвращаем клонов, кроме изменения
             if (isClone)
@@ -99,7 +98,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (isClone && result != null)
             result = (T) result.clone();
 
-        history.add(result.clone());
+        if (result != null)
+            history.add(result.clone());
 
         return result;
     }
@@ -131,13 +131,20 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
+        for (Task task : tasks.values())
+            history.remove(task.getId());
+
         tasks.clear();
     }
 
     @Override
     public void deleteAllEpics() {
-        epics.clear();
-        subTasks.clear();
+        deleteAllSubTasks();
+
+        for (Epic epic : new ArrayList<>(epics.values())) {
+            history.remove(epic.getId());
+            epics.remove(epic.getId());
+        }
     }
 
     @Override
@@ -145,6 +152,8 @@ public class InMemoryTaskManager implements TaskManager {
         Collection<SubTask> subTasksList = new ArrayList<>(subTasks.values());
 
         for (SubTask subTask : subTasksList) {
+            history.remove(subTask.getId());
+
             epics.get(subTask.getParentId()).deleteSubTask(subTask.getId());
             subTasks.remove(subTask.getId());
         }
@@ -181,7 +190,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public List<Task> getHistory(){
+    public List<Task> getHistory() {
         return history.getHistory();
     }
 }

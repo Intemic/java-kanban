@@ -75,21 +75,31 @@ public class InMemoryTaskManagerAlternative implements TaskManager {
 
     // удаление
     public void deleteAllTasks() {
-        for (Task task : getTasks())
+        for (Task task : getTasks()) {
+            history.remove(task.getId());
             tasks.remove(task.getId());
+        }
     }
 
     public void deleteAllEpics() {
         for (Epic epic : getEpics()) {
             // вычищаем подзадачи
-            epic.deleteSubTasks();
+            deleteAllSubTaskForEpic(epic);
+
+            history.remove(epic.getId());
             tasks.remove(epic.getId());
         }
     }
 
     public void deleteAllSubTasks() {
         for (Epic epic : getEpics())
-            epic.deleteSubTasks();
+            deleteAllSubTaskForEpic(epic);
+    }
+
+    private void deleteAllSubTaskForEpic(Epic epic) {
+        for (SubTask subTask : epic.getSubTasks())
+            history.remove(subTask.getId());
+        epic.deleteSubTasks();
     }
 
     // поиск
@@ -127,10 +137,10 @@ public class InMemoryTaskManagerAlternative implements TaskManager {
                     // для обычного поиска возвращаем клон
                     history.add(subTask.clone());
 
-                    if (isClone)
-                        return subTask.clone();
-                    else
-                        return subTask;
+                if (isClone)
+                    return subTask.clone();
+                else
+                    return subTask;
             }
 
         return subTask;

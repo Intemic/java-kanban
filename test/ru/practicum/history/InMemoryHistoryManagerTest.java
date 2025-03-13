@@ -3,6 +3,7 @@ package ru.practicum.history;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.practicum.manager.Managers;
 import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
@@ -21,7 +22,7 @@ class InMemoryHistoryManagerTest {
     @BeforeEach
     public void initial() {
         configLimitIgnore = new ConfigHistoryManager(3, true);
-        configNoLimit = new ConfigHistoryManager(0, false);
+        configNoLimit = new ConfigHistoryManager(false);
 
         task = new Task("Новая задача", "что то делаем");
         epic = new Epic("Новый эпик", "что то делаем");
@@ -92,6 +93,45 @@ class InMemoryHistoryManagerTest {
 
         history.add(task);
         assertEquals(1, history.getHistory().size());
+
+        Task cloneTask = task.clone();
+        String description = "Копия первоначальной задачи";
+        cloneTask.setDescription(description);
+
+        history.add(cloneTask);
+        assertEquals(description, history.getHistory().get(0).getDescription(),
+                "Ошибка сохранения актуальных данных");
+    }
+
+    @DisplayName("Проверяем корректность работу метода remove")
+    @Test
+    public void checkCorrectMethodRemove() {
+        history = new InMemoryHistoryManager(configNoLimit);
+
+        history.add(task);
+        history.add(epic);
+        history.add(subTask);
+
+        history.remove(5);
+        assertEquals(3, history.getHistory().size(), "Ошибка удаления элемента");
+
+        history.remove(0);
+        assertEquals(3, history.getHistory().size(), "Ошибка удаления элемента");
+
+        history.remove(epic.getId());
+        assertFalse(history.getHistory().contains(epic.getId()), "Ошибка удаления элемента");
+        assertEquals(2, history.getHistory().size(), "Ошибка удаления элемента");
+
+        history.remove(task.getId());
+        assertFalse(history.getHistory().contains(task.getId()), "Ошибка удаления элемента");
+        assertEquals(1, history.getHistory().size(), "Ошибка удаления элемента");
+
+        history.remove(subTask.getId());
+        assertFalse(history.getHistory().contains(subTask.getId()), "Ошибка удаления элемента");
+        assertEquals(0, history.getHistory().size(), "Ошибка удаления элемента");
+
+        history.remove(5);
+
     }
 
 }

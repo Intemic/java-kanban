@@ -65,8 +65,8 @@ public class Task {
     }
 
     public void setStatus(Status status) {
-      if(status != null)
-          this.status = status;
+        if (status != null)
+            this.status = status;
     }
 
     public int getId() {
