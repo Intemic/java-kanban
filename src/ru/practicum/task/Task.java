@@ -1,8 +1,9 @@
 package ru.practicum.task;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Task {
+public class Task implements Serializable {
     private static int uid;
     private int id;
     private String name;
