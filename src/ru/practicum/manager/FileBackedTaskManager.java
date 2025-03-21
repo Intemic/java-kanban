@@ -2,7 +2,6 @@ package ru.practicum.manager;
 
 import ru.practicum.exception.ManagerLoadException;
 import ru.practicum.exception.ManagerSaveException;
-import ru.practicum.history.HistoryManager;
 import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
@@ -23,7 +22,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public FileBackedTaskManager(File file) {
         if (file == null || file.getName().isBlank())
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Некорретное имя файла");
         this.file = file;
     }
 
@@ -37,7 +36,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             objectOutputStream.writeObject(subTasks);
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
             throw new ManagerSaveException(
                     String.format(pattern, "не удалось создать файл"));
         } catch (IOException e) {
