@@ -15,4 +15,13 @@ public enum Status {
     public String toString() {
         return description;
     }
+
+    public static Status deserilization(String data) {
+        return switch (data) {
+            case "Новая" -> Status.NEW;
+            case "В работе" -> Status.IN_PROGRESS;
+            case "Выполнена" -> Status.DONE;
+            default -> null;
+        };
+    }
 }

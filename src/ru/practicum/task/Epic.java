@@ -7,6 +7,11 @@ import java.util.Map;
 public class Epic extends Task {
     private HashMap<Integer, SubTask> subTasks = new HashMap<>();
 
+    // для создания из строки
+    private Epic(int uid, int id, String name, String description, Status status) {
+       super(uid, id, name, description, status);
+    }
+
     private Epic(Epic epic) {
         super(epic);
         this.subTasks = new HashMap<>();
@@ -121,4 +126,15 @@ public class Epic extends Task {
 
         return result;
     }
+
+    public static void main(String[] args) {
+        Epic epic = new Epic("Обычная задача", "Выполнить задачу обязательно");
+        String serialized = epic.serialization();
+        System.out.println(serialized);
+
+        Epic test = (Epic) deserilization(serialized);
+        System.out.println(test);
+
+    }
+
 }

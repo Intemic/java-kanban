@@ -1,14 +1,27 @@
 package ru.practicum.task;
 
-import java.io.Serializable;
-import java.util.Objects;
+import ru.practicum.exception.SerializationException;
 
-public class Task implements Serializable {
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+
+public class Task {
     private static int uid;
     private int id;
     private String name;
     private String description;
     protected Status status;
+
+    // для создания из строки
+    protected Task(int uid, int id, String name, String description, Status status) {
+        this.uid = uid;
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+    }
 
     // нужен для создания объекта без изменения uid
     protected Task(Task task) {
@@ -103,5 +116,110 @@ public class Task implements Serializable {
                 ", description='" + (description != null ? description : "null") + '\'' +
                 ", status=" + status +
                 '}';
+    }
+
+    // получаем перечень полей для сохранения/востановления
+    private static Field[] getFields(Class<?> cls) {
+        List<Field> result = new LinkedList<>();
+
+        if (cls.getSuperclass() != null)
+            Collections.addAll(result, getFields(cls.getSuperclass()));
+
+        Collections.addAll(result, cls.getDeclaredFields());
+
+        // HashMap уберем
+        for (Field field : new LinkedList<>(result)) {
+            field.setAccessible(true);
+            if (field.getType() == HashMap.class)
+                result.remove(field);
+        }
+
+        return result.toArray(new Field[]{});
+    }
+
+    // конвертируем значения в строку
+    private String fieldsValueToString(Class<?> cls) throws IllegalAccessException {
+        StringBuilder result = new StringBuilder();
+
+        for (Field field : getFields(cls)) {
+            if (field.get(this) != null)
+                result.append((field.get(this)).toString());
+            result.append(",");
+        }
+
+        if (!result.isEmpty())
+            result.deleteCharAt(result.length() - 1);
+
+        return result.toString();
+    }
+
+    private static Object[] getConstructorParam(final Field[] fields, final String[] values) {
+        Object[] objects = new Object[fields.length];
+
+        for (int i = 0; i < fields.length; i++) {
+            if (fields[i].getType() == int.class)
+                objects[i] = Integer.parseInt(values[i]);
+            else if (fields[i].getType() == Status.class)
+                objects[i] = Status.deserilization(values[i]);
+            else
+                objects[i] = values[i];
+        }
+
+        return objects;
+    }
+
+    public String serialization() {
+        StringBuilder result = new StringBuilder();
+        result.append(getClass().getName());
+        result.append(",");
+        try {
+            result.append(fieldsValueToString(getClass()));
+        } catch (IllegalAccessException e) {
+            throw  new SerializationException(e.getMessage());
+        }
+
+        return result.toString();
+    }
+
+    public static Task deserilization(String data) {
+        String className = null;
+
+        if (!data.isBlank()) {
+            String[] values = data.split(",");
+            className = values[0];
+            values = Arrays.copyOfRange(values, 1, values.length);
+
+            try {
+                Class<?> classTask = Class.forName(className);
+                if (!(classTask == Task.class) && (classTask.getSuperclass() != Task.class))
+                    return null;
+
+                Field[] fields = getFields(classTask);
+                Class<?>[] constructorAttributes = new Class[fields.length];
+                for (int i = 0; i < fields.length; i++)
+                    constructorAttributes[i] = fields[i].getType();
+
+                Constructor<?> classConstructor = classTask.getDeclaredConstructor(constructorAttributes);
+                classConstructor.setAccessible(true);
+                return (Task) classConstructor.newInstance(getConstructorParam(fields, values));
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
+                     NoSuchMethodException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+            }
+        }
+
+        return null;
+    }
+
+    public static void main(String[] args) {
+        Task task = new Task("Обычная задача", "Выполнить задачу обязательно");
+        String serialized = task.serialization();
+        System.out.println(serialized);
+
+        Task test = deserilization(serialized);
+        System.out.println(test);
+
     }
 }

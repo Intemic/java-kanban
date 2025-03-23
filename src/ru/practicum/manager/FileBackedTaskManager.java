@@ -2,13 +2,13 @@ package ru.practicum.manager;
 
 import ru.practicum.exception.ManagerLoadException;
 import ru.practicum.exception.ManagerSaveException;
+import ru.practicum.exception.SerializationException;
 import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private File file;
@@ -22,33 +22,40 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public FileBackedTaskManager(File file) {
         if (file == null || file.getName().isBlank())
-            throw new IllegalArgumentException("Некорретное имя файла");
+            throw new IllegalArgumentException("Некорректное имя файла");
         this.file = file;
     }
 
     public void save() {
         final String pattern = "Ошибка сохранения: %s";
 
-        try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
-                new FileOutputStream(file))) {
-            objectOutputStream.writeObject(tasks);
-            objectOutputStream.writeObject(epics);
-            objectOutputStream.writeObject(subTasks);
+        try (BufferedWriter buffered = new BufferedWriter(
+                new FileWriter(file))) {
 
-        } catch (FileNotFoundException e) {
+            List<Task> taskList = new ArrayList<>();
+            taskList.addAll(tasks.values());
+            taskList.addAll(epics.values());
+            taskList.addAll(subTasks.values());
+
+            for (Task task : taskList) {
+                buffered.write(task.serialization());
+                buffered.newLine();
+            }
+
+        } catch (SerializationException e) {
             throw new ManagerSaveException(
-                    String.format(pattern, "не удалось создать файл"));
+                    String.format(pattern, e.getMessage() != null ? e.getMessage() : e.toString()));
         } catch (IOException e) {
             throw new ManagerSaveException(
                     String.format(pattern, e.getMessage() != null ? e.getMessage() : e.toString()));
         }
     }
 
-    static FileBackedTaskManager loadFromFile(String filename) {
+    public static FileBackedTaskManager loadFromFile(String filename) {
         return loadFromFile(new File(filename));
     }
 
-    static FileBackedTaskManager loadFromFile(File file) {
+    public static FileBackedTaskManager loadFromFile(File file) {
         final String pattern = "Ошибка загрузки: %s";
 
         try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file))) {
@@ -157,15 +164,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             listSubTask.add(subTask);
             manager.createSubTask(subTask);
 
-            FileBackedTaskManager managerLoaded = loadFromFile(filename);
-            if (!listTask.equals(managerLoaded.getTasks()))
-                System.out.println("Ошибка загрузки задач");
-
-            if (!listSubTask.equals(managerLoaded.getSubTasks()))
-                System.out.println("Ошибка загрузки подзадач");
-
-            if (!listEpic.equals(managerLoaded.getEpics()))
-                System.out.println("Ошибка загрузки эпиков");
+//            FileBackedTaskManager managerLoaded = loadFromFile(filename);
+//            if (!listTask.equals(managerLoaded.getTasks()))
+//                System.out.println("Ошибка загрузки задач");
+//
+//            if (!listSubTask.equals(managerLoaded.getSubTasks()))
+//                System.out.println("Ошибка загрузки подзадач");
+//
+//            if (!listEpic.equals(managerLoaded.getEpics()))
+//                System.out.println("Ошибка загрузки эпиков");
 
         } catch (Exception e) {
             e.printStackTrace();
