@@ -10,10 +10,10 @@ import ru.practicum.task.Task;
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class InTaskManagerBaseTest {
-    private TaskManager taskManager;
-    private Task task;
-    private Epic epic;
-    private SubTask subTask;
+    protected TaskManager taskManager;
+    protected Task task;
+    protected Epic epic;
+    protected SubTask subTask;
 
     protected abstract TaskManager getInstaceManager();
 

@@ -3,6 +3,11 @@ package ru.practicum.task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import ru.practicum.exception.DeserilizationException;
+import ru.practicum.manager.FileBackedTaskManager;
+
+import java.io.Serializable;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -110,7 +115,7 @@ class TaskTest {
 
     }
 
-    @DisplayName("Проверка орректности нумерации")
+    @DisplayName("Проверка корректности нумерации")
     @Test
     public void checkCorrectIncrementId() {
         int id = task.getId();
@@ -119,6 +124,37 @@ class TaskTest {
         assertEquals(id + 1, newTask.getId(), "Ошибка присвоения id");
         newTask = new Task(name, description);
         assertEquals(id + 2, newTask.getId(), "Ошибка присвоения id");
+
+    }
+
+    @DisplayName("Проверка сериализации/десериализации")
+    @Test
+    public void checkSerializationDeserilizationMethod() {
+        Task task = new Task("Обычная задача", "Выполнить задачу обязательно");
+        task.setStatus(Status.DONE);
+        String serialized = task.serialization();
+
+        Task restoreTask = Task.deserilization(serialized);
+
+        assertEquals(task.getId(), restoreTask.getId(), "Ошибка в востановлении Id");
+        assertEquals(task.getName(), restoreTask.getName(), "Ошибка в востановлении name");
+        assertEquals(task.getDescription(), restoreTask.getDescription(), "Ошибка в востановлении description");
+        assertEquals(task.getStatus(), restoreTask.getStatus(), "Ошибка в востановлении description");
+
+        serialized = serialized.replaceFirst(Task.class.getName(), Epic.class.getName());
+        restoreTask = Task.deserilization(serialized);
+        assertEquals(Epic.class, restoreTask.getClass());
+
+        DeserilizationException deserExcept = assertThrows(DeserilizationException.class,
+                    new Executable() {
+                        @Override
+                        public void execute() {
+                            Task.deserilization(new String());
+                        }
+                    });
+
+        assertEquals("Некорректный входной параметр", deserExcept.getMessage(),
+                "Ошибка обработки исключения при пустом параметре");
 
     }
 }
