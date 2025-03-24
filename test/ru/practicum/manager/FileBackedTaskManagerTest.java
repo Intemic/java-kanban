@@ -96,6 +96,10 @@ class FileBackedTaskManagerTest extends InTaskManagerBaseTest {
         assertTrue(taskManager.getEpics().equals(managerLoaded.getEpics()), "Ошибка операции изменения эпиков");
         assertTrue(taskManager.getSubTasks().equals(managerLoaded.getSubTasks()),
                 "Ошибка операции изменения подзадач");
+
+        // проверим что UId корректный
+        task = new Task("Проверка", "Проверка корректности Id");
+        assertEquals(subTask.getId() + 1, task.getId(), "Ошибка востановления UId");
     }
 
     @DisplayName("Проверка корректной работы при загрузке из файла с пустым переданным именем")
@@ -132,7 +136,7 @@ class FileBackedTaskManagerTest extends InTaskManagerBaseTest {
                         new FileBackedTaskManager("");
                     }
                 });
-        assertEquals("Некорретное имя файла", except.getMessage(),
+        assertEquals("Некорректное имя файла", except.getMessage(),
                 "Ошибка обработки исключения при загрузке");
 
         except = assertThrows(IllegalArgumentException.class,
@@ -142,7 +146,7 @@ class FileBackedTaskManagerTest extends InTaskManagerBaseTest {
                         new FileBackedTaskManager(new File(""));
                     }
                 });
-        assertEquals("Некорретное имя файла", except.getMessage(),
+        assertEquals("Некорректное имя файла", except.getMessage(),
                 "Ошибка обработки исключения при загрузке");
 
     }

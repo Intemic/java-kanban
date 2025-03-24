@@ -55,10 +55,8 @@ public class Epic extends Task {
         return status;
     }
 
-    /*
-    недоступно извне, вызывает подзадача
-    */
-    void addSubTask(SubTask subTask) {
+
+    public void addSubTask(SubTask subTask) {
         if (subTask != null) {
             subTasks.put(subTask.getId(), subTask);
         }

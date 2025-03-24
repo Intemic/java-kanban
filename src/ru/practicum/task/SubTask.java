@@ -3,6 +3,11 @@ package ru.practicum.task;
 public class SubTask extends Task {
     private int parentId;
 
+    private SubTask(int uid, int id, String name, String description, Status status, int parentId) {
+        super(uid, id, name, description, status);
+        this.parentId = parentId;
+    }
+
     private SubTask(SubTask subTask) {
         super(subTask);
         this.parentId = subTask.parentId;

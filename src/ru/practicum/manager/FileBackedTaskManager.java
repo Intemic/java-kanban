@@ -1,5 +1,6 @@
 package ru.practicum.manager;
 
+import ru.practicum.exception.DeserilizationException;
 import ru.practicum.exception.ManagerLoadException;
 import ru.practicum.exception.ManagerSaveException;
 import ru.practicum.exception.SerializationException;
@@ -13,7 +14,11 @@ import java.util.*;
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private File file;
 
-    private FileBackedTaskManager() {
+    private FileBackedTaskManager(HashMap<Integer, Task> tasks, HashMap<Integer, Epic> epics,
+                                  HashMap<Integer, SubTask> subTasks) {
+        this.tasks = tasks;
+        this.epics = epics;
+        this.subTasks = subTasks;
     }
 
     public FileBackedTaskManager(final String filename) {
@@ -26,7 +31,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.file = file;
     }
 
-    public void save() {
+    private void save() {
         final String pattern = "Ошибка сохранения: %s";
 
         try (BufferedWriter buffered = new BufferedWriter(
@@ -58,22 +63,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public static FileBackedTaskManager loadFromFile(File file) {
         final String pattern = "Ошибка загрузки: %s";
 
-        try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(file))) {
-            FileBackedTaskManager manager = new FileBackedTaskManager();
-            manager.tasks = (HashMap) objectInputStream.readObject();
-            manager.epics = (HashMap) objectInputStream.readObject();
-            manager.subTasks = (HashMap) objectInputStream.readObject();
-            return manager;
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
+            HashMap<Integer, Task> tasks = new HashMap<>();
+            HashMap<Integer, Epic> epics = new HashMap<>();
+            HashMap<Integer, SubTask> subTasks = new HashMap<>();
 
+            while (bufferedReader.ready()) {
+                Task task = Task.deserilization(bufferedReader.readLine());
+                if (task.getClass() == Task.class)
+                    tasks.put(task.getId(), task);
+                else if (task.getClass() == Epic.class)
+                    epics.put(task.getId(), (Epic) task);
+                else if (task.getClass() == SubTask.class) {
+                    SubTask subTask = (SubTask) task;
+                    subTasks.put(subTask.getId(), subTask);
+                    if (epics.get(subTask.getParentId()) != null) {
+                        epics.get(subTask.getParentId()).addSubTask(subTask);
+                    }
+                }
+            }
+
+            return new FileBackedTaskManager(tasks, epics, subTasks);
+
+        } catch (DeserilizationException e) {
+            throw new ManagerLoadException(
+                    String.format(pattern, e.getMessage()));
         } catch (FileNotFoundException e) {
             throw new ManagerLoadException(
                     String.format(pattern, "файл не найден"));
         } catch (IOException e) {
             throw new ManagerLoadException(
                     String.format(pattern, e.getMessage() != null ? e.getMessage() : e.toString()));
-        } catch (ClassNotFoundException e) {
-            throw new ManagerLoadException(
-                    String.format(pattern, "не удалось загрузить класс"));
         }
     }
 
@@ -131,17 +151,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Task task = null;
         Epic epic = null;
         SubTask subTask = null;
         ArrayList<Task> listTask = new ArrayList<>();
         ArrayList<SubTask> listSubTask = new ArrayList<>();
         ArrayList<Epic> listEpic = new ArrayList<>();
-        final String filename = "manager.tsk";
+        final File file = File.createTempFile("manager", "tsk");
 
         try {
-            FileBackedTaskManager manager = new FileBackedTaskManager(filename);
+            FileBackedTaskManager manager = new FileBackedTaskManager(file);
 
             for (int i = 0; i < 2; i++) {
                 task = new Task("Обычная задача № " + (i + 1), "Выполнить задачу обязательно " + (i + 1));
@@ -149,7 +169,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 manager.createTask(task);
             }
 
-            epic = new Epic("Эпик № 1", "Будем тестировать эпик 1, шаги: ");
+            epic = new Epic("Эпик № 1", "Будем тестировать эпик 1 шаги: ");
 
             for (int i = 0; i < 2; i++) {
                 subTask = new SubTask("Подзадача № " + (i + 1),
@@ -164,19 +184,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             listSubTask.add(subTask);
             manager.createSubTask(subTask);
 
-//            FileBackedTaskManager managerLoaded = loadFromFile(filename);
-//            if (!listTask.equals(managerLoaded.getTasks()))
-//                System.out.println("Ошибка загрузки задач");
-//
-//            if (!listSubTask.equals(managerLoaded.getSubTasks()))
-//                System.out.println("Ошибка загрузки подзадач");
-//
-//            if (!listEpic.equals(managerLoaded.getEpics()))
-//                System.out.println("Ошибка загрузки эпиков");
+            FileBackedTaskManager managerLoaded = loadFromFile(file);
+            if (!listTask.equals(managerLoaded.getTasks()))
+                System.out.println("Ошибка загрузки задач");
+
+            if (!listSubTask.equals(managerLoaded.getSubTasks()))
+                System.out.println("Ошибка загрузки подзадач");
+
+            if (!listEpic.equals(managerLoaded.getEpics()))
+                System.out.println("Ошибка загрузки эпиков");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

@@ -1,5 +1,6 @@
 package ru.practicum.task;
 
+import ru.practicum.exception.DeserilizationException;
 import ru.practicum.exception.SerializationException;
 
 import java.lang.reflect.Constructor;
@@ -118,6 +119,12 @@ public class Task {
                 '}';
     }
 
+    /*
+    функциональность сохранения и востановления из csv можно было конечно реализовать
+    намного проще, но данная реализация была сделана с целью применить полученные
+    знания на практике
+    */
+
     // получаем перечень полей для сохранения/востановления
     private static Field[] getFields(Class<?> cls) {
         List<Field> result = new LinkedList<>();
@@ -138,10 +145,10 @@ public class Task {
     }
 
     // конвертируем значения в строку
-    private String fieldsValueToString(Class<?> cls) throws IllegalAccessException {
+    private String fieldsValueToString() throws IllegalAccessException {
         StringBuilder result = new StringBuilder();
 
-        for (Field field : getFields(cls)) {
+        for (Field field : getFields(getClass())) {
             if (field.get(this) != null)
                 result.append((field.get(this)).toString());
             result.append(",");
@@ -153,7 +160,7 @@ public class Task {
         return result.toString();
     }
 
-    private static Object[] getConstructorParam(final Field[] fields, final String[] values) {
+    private static Object[] getConstructorParam(Field[] fields, String[] values) {
         Object[] objects = new Object[fields.length];
 
         for (int i = 0; i < fields.length; i++) {
@@ -173,9 +180,9 @@ public class Task {
         result.append(getClass().getName());
         result.append(",");
         try {
-            result.append(fieldsValueToString(getClass()));
+            result.append(fieldsValueToString());
         } catch (IllegalAccessException e) {
-            throw  new SerializationException(e.getMessage());
+            throw new SerializationException(e.getMessage());
         }
 
         return result.toString();
@@ -184,42 +191,32 @@ public class Task {
     public static Task deserilization(String data) {
         String className = null;
 
-        if (!data.isBlank()) {
-            String[] values = data.split(",");
-            className = values[0];
-            values = Arrays.copyOfRange(values, 1, values.length);
+        if (data.isBlank())
+            throw new DeserilizationException("Некорректный входной параметр");
 
-            try {
-                Class<?> classTask = Class.forName(className);
-                if (!(classTask == Task.class) && (classTask.getSuperclass() != Task.class))
-                    return null;
+        String[] values = data.split(",");
+        className = values[0];
+        values = Arrays.copyOfRange(values, 1, values.length);
 
-                Field[] fields = getFields(classTask);
-                Class<?>[] constructorAttributes = new Class[fields.length];
-                for (int i = 0; i < fields.length; i++)
-                    constructorAttributes[i] = fields[i].getType();
+        try {
+            Class<?> classTask = Class.forName(className);
+            if (!(classTask == Task.class) && (classTask.getSuperclass() != Task.class))
+                throw new DeserilizationException("Некорректный тип класса");
 
-                Constructor<?> classConstructor = classTask.getDeclaredConstructor(constructorAttributes);
-                classConstructor.setAccessible(true);
-                return (Task) classConstructor.newInstance(getConstructorParam(fields, values));
-            } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
-                     NoSuchMethodException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-//            } catch (Exception e) {
-//                throw new RuntimeException(e);
-            }
+            Field[] fields = getFields(classTask);
+            if (fields.length != values.length)
+                throw new DeserilizationException("Некорректный входной параметр");
+
+            Class<?>[] constructorAttributes = new Class[fields.length];
+            for (int i = 0; i < fields.length; i++)
+                constructorAttributes[i] = fields[i].getType();
+
+            Constructor<?> classConstructor = classTask.getDeclaredConstructor(constructorAttributes);
+            classConstructor.setAccessible(true);
+            return (Task) classConstructor.newInstance(getConstructorParam(fields, values));
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
+                 NoSuchMethodException | ClassNotFoundException e) {
+            throw new DeserilizationException(e.getMessage());
         }
-
-        return null;
-    }
-
-    public static void main(String[] args) {
-        Task task = new Task("Обычная задача", "Выполнить задачу обязательно");
-        String serialized = task.serialization();
-        System.out.println(serialized);
-
-        Task test = deserilization(serialized);
-        System.out.println(test);
-
     }
 }
