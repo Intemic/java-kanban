@@ -6,22 +6,29 @@ import ru.practicum.exception.SerializationException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
-public class Task {
+public class Task implements Comparable {
     private static int uid;
     private int id;
     private String name;
     private String description;
     protected Status status;
+    private LocalDateTime startTime;
+    private Duration duration;
 
     // для создания из строки
-    protected Task(int uid, int id, String name, String description, Status status) {
+    protected Task(int uid, int id, String name, String description, Status status,
+                   LocalDateTime startTime, Duration duration) {
         this.uid = uid;
         this.id = id;
         this.name = name;
         this.description = description;
         this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     // нужен для создания объекта без изменения uid
@@ -33,16 +40,25 @@ public class Task {
     }
 
     public Task(String name, String description) {
+        this(name, description, null, null);
+    }
+
+    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
         if (name == null || name.isEmpty())
-            throw new NullPointerException();
+            throw new NullPointerException("Отсутствует наименование");
 
         if (description == null || description.isEmpty())
-            throw new NullPointerException();
+            throw new NullPointerException("Отсутствует описание");
+
+        if (duration != null && startTime == null)
+            throw new NullPointerException("Не заполнена дана начала задачи, при заполненной продолжительности");
 
         this.id = ++uid;
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     public String getName() {
@@ -218,5 +234,33 @@ public class Task {
                  NoSuchMethodException | ClassNotFoundException e) {
             throw new DeserilizationException(e.getMessage());
         }
+    }
+
+    public LocalDateTime getEndTime() {
+        if (getStartTime() != null && getDuration() != null)
+            return getStartTime().plus(getDuration());
+
+        return null;
+    }
+
+    protected void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    protected void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        return getStartTime().compareTo(((Task)o).getStartTime());
     }
 }

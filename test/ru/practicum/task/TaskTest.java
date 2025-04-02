@@ -8,6 +8,8 @@ import ru.practicum.exception.DeserilizationException;
 import ru.practicum.manager.FileBackedTaskManager;
 
 import java.io.Serializable;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -156,5 +158,30 @@ class TaskTest {
         assertEquals("Некорректный входной параметр", deserExcept.getMessage(),
                 "Ошибка обработки исключения при пустом параметре");
 
+    }
+
+    @DisplayName("Проверка корректности временных значений")
+    @Test
+    public void checkCorrectTimeValues() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Duration duration = Duration.ofMinutes(60);
+
+        assertNull(task.getStartTime(), "Ошибка определения даты начала");
+        assertNull(task.getDuration(), "Ошибка определения длительности");
+        assertNull(task.getEndTime(), "Ошибка расчета времени окончания");
+
+        task = new Task(task.getName(), task.getDescription(), localDateTime, null);
+        assertTrue(localDateTime.equals(task.getStartTime()), "Ошибка определения даты начала");
+        assertNull(task.getDuration(), "Ошибка определения длительности");
+        assertNull(task.getEndTime(), "Ошибка расчета времени окончания");
+
+        NullPointerException except = assertThrows(NullPointerException.class,
+                () -> new Task(task.getName(), task.getDescription(), null, duration));
+        assertEquals("Не заполнена дана начала задачи, при заполненной продолжительности",
+                except.getMessage(), "Ошибка проверки входных параметров");
+
+        task = new Task(task.getName(), task.getDescription(), localDateTime, duration);
+        assertTrue(duration.equals(task.getDuration()), "Ошибка определения длительности");
+        assertTrue(localDateTime.plus(duration).equals(task.getEndTime()), "Ошибка расчета времени окончания");
     }
 }

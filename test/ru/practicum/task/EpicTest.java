@@ -4,7 +4,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EpicTest {
     private Epic epic;
@@ -125,5 +130,46 @@ class EpicTest {
 
         assertNotNull(epic.getSubTaskForId(subTask2.getId()));
         assertEquals(subTask2, epic.getSubTaskForId(subTask2.getId()), "Не корректная работа обновления");
+    }
+
+    @DisplayName("Проверка корректности временных значений")
+    @Test
+    public void checkCorrectTimeValues() {
+        LocalDateTime startDateTime = LocalDateTime.now();
+        HashMap<LocalDateTime, Long> map = new LinkedHashMap<>();
+        int count = 4;
+        Random random = new Random();
+        Duration duration = null;
+
+        do {
+            map.put(startDateTime.plusMinutes(random.nextLong(300) + 1),
+                    random.nextLong(60) + 1);
+        } while (map.size() != count);
+
+        int index = 1;
+        // без даты
+        subTask = new SubTask("Подзадача " + index, "Описание подзадачи " + index, epic);
+        assertNull(epic.getStartTime(), "Ошибка определения даты начала");
+        assertNull(epic.getDuration(), "Ошибка определения длительности");
+        assertNull(epic.getEndTime(), "Ошибка расчета времени окончания");
+
+
+        for (Map.Entry<LocalDateTime, Long> entry : map.entrySet()) {
+            index++;
+            subTask = new SubTask("Подзадача " + index,
+                    "Описание подзадачи " + index, epic, entry.getKey(), Duration.ofMinutes(entry.getValue()));
+            if (duration == null)
+                duration = Duration.ofMinutes(entry.getValue());
+            else
+                duration = duration.plusMinutes(entry.getValue());
+        }
+
+        List<LocalDateTime> listDateTime = new ArrayList<>(map.keySet());
+        Collections.sort(listDateTime);
+
+        assertTrue(listDateTime.get(0).equals(epic.getStartTime()), "Ошибка определения даты начала");
+        assertTrue(duration.equals(epic.getDuration()), "Ошибка определения длительности");
+        LocalDateTime finishDateTime = epic.getStartTime().plusMinutes(epic.getDuration().toMinutes());
+        assertTrue(finishDateTime.equals(epic.getEndTime()), "Ошибка расчета времени окончания");
     }
 }

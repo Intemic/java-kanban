@@ -1,10 +1,14 @@
 package ru.practicum.task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class SubTask extends Task {
     private int parentId;
 
-    private SubTask(int uid, int id, String name, String description, Status status, int parentId) {
-        super(uid, id, name, description, status);
+    private SubTask(int uid, int id, String name, String description, Status status,
+                    LocalDateTime startTime, Duration duration, int parentId) {
+        super(uid, id, name, description, status, startTime, duration);
         this.parentId = parentId;
     }
 
@@ -14,7 +18,12 @@ public class SubTask extends Task {
     }
 
     public SubTask(String name, String description, Epic epic) {
-        super(name, description);
+        this(name, description, epic, null, null);
+    }
+
+    public SubTask(String name, String description, Epic epic,
+                   LocalDateTime startTime, Duration duration) {
+        super(name, description, startTime, duration);
 
         // нет смысла создавать без связки, без связки это обычная задача
         if (epic == null)
@@ -58,7 +67,6 @@ public class SubTask extends Task {
                         + "{id=" + getParentId() + "}";
             result = new StringBuffer(result).insert(positionStatus, "parent=" + parentValues + ", ").toString();
         }
-
 
         return result;
     }

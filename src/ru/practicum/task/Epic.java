@@ -1,15 +1,20 @@
 package ru.practicum.task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Epic extends Task {
     private HashMap<Integer, SubTask> subTasks = new HashMap<>();
 
     // для создания из строки
-    private Epic(int uid, int id, String name, String description, Status status) {
-       super(uid, id, name, description, status);
+    private Epic(int uid, int id, String name, String description, Status status,
+                 LocalDateTime startTime, Duration duration) {
+        super(uid, id, name, description, status, startTime, duration);
     }
 
     private Epic(Epic epic) {
@@ -123,6 +128,40 @@ public class Epic extends Task {
                     "subTasks=" + (subTasks != null ? subTasks.toString() : "null") + ", ").toString();
 
         return result;
+    }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        LocalDateTime startTime = null;
+
+        Optional<SubTask> minTask = subTasks.values().stream()
+                .filter(subTask -> subTask.getStartTime() != null)
+                .min((subTask1, subTask2) ->
+                        subTask1.getStartTime().compareTo(subTask2.getStartTime()));
+
+        if (minTask.isPresent())
+            startTime = minTask.get().getStartTime();
+
+        // будем заполнять поле для записи в файл
+        setStartTime(startTime);
+
+        return super.getStartTime();
+    }
+
+    @Override
+    public Duration getDuration() {
+        Duration duration = null;
+
+        Long minutes = subTasks.values().stream()
+                .filter(subTask -> subTask.getDuration() != null)
+                .collect(Collectors.summingLong(subTask -> subTask.getDuration().toMinutes()));
+
+        if (minutes != 0)
+            duration = Duration.ofMinutes(minutes);
+
+        setDuration(duration);
+
+        return duration;
     }
 
     public static void main(String[] args) {
