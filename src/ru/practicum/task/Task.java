@@ -10,7 +10,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
-public class Task implements Comparable {
+public class Task implements Comparable<Task> {
     private static int uid;
     private int id;
     private String name;
@@ -20,6 +20,7 @@ public class Task implements Comparable {
     private Duration duration;
 
     // для создания из строки
+    @SuppressWarnings("static-access")
     protected Task(int uid, int id, String name, String description, Status status,
                    LocalDateTime startTime, Duration duration) {
         this.uid = uid;
@@ -33,10 +34,13 @@ public class Task implements Comparable {
 
     // нужен для создания объекта без изменения uid
     protected Task(Task task) {
-        this.id = task.id;
-        this.name = task.name;
-        this.description = task.description;
-        this.status = task.status;
+        this(Task.uid, task.id, task.name, task.description, task.status, task.startTime, task.duration);
+//        this.id = task.id;
+//        this.name = task.name;
+//        this.description = task.description;
+//        this.status = task.status;
+//        this.startTime = task.startTime;
+//        this.duration = task.duration;
     }
 
     public Task(String name, String description) {
@@ -136,12 +140,12 @@ public class Task implements Comparable {
     }
 
     /*
-    функциональность сохранения и востановления из csv можно было конечно реализовать
+    функциональность сохранения и восстановления из csv можно было конечно реализовать
     намного проще, но данная реализация была сделана с целью применить полученные
     знания на практике
     */
 
-    // получаем перечень полей для сохранения/востановления
+    // получаем перечень полей для сохранения/восстановления
     private static Field[] getFields(Class<?> cls) {
         List<Field> result = new LinkedList<>();
 
@@ -167,6 +171,8 @@ public class Task implements Comparable {
         for (Field field : getFields(getClass())) {
             if (field.get(this) != null)
                 result.append((field.get(this)).toString());
+            else
+                result.append(" ");
             result.append(",");
         }
 
@@ -180,12 +186,19 @@ public class Task implements Comparable {
         Object[] objects = new Object[fields.length];
 
         for (int i = 0; i < fields.length; i++) {
-            if (fields[i].getType() == int.class)
+            if (fields[i].getType() == int.class) {
                 objects[i] = Integer.parseInt(values[i]);
-            else if (fields[i].getType() == Status.class)
+            } else if (fields[i].getType() == Status.class) {
                 objects[i] = Status.deserilization(values[i]);
-            else
+            } else if (fields[i].getType() == LocalDateTime.class) {
+                if (!values[i].isBlank())
+                    objects[i] = LocalDateTime.parse(values[i]);
+            } else if (fields[i].getType() == Duration.class) {
+                if (!values[i].isBlank())
+                    objects[i] = Duration.parse(values[i]);
+            } else {
                 objects[i] = values[i];
+            }
         }
 
         return objects;
@@ -205,7 +218,7 @@ public class Task implements Comparable {
     }
 
     public static Task deserilization(String data) {
-        String className = null;
+        String className;
 
         if (data.isBlank())
             throw new DeserilizationException("Некорректный входной параметр");
@@ -260,7 +273,8 @@ public class Task implements Comparable {
     }
 
     @Override
-    public int compareTo(Object o) {
-        return getStartTime().compareTo(((Task)o).getStartTime());
+    // естественная сортировка будет по дате начала
+    public int compareTo(Task o) {
+        return getStartTime().compareTo(o.getStartTime());
     }
 }

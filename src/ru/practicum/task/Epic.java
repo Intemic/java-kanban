@@ -152,9 +152,9 @@ public class Epic extends Task {
     public Duration getDuration() {
         Duration duration = null;
 
-        Long minutes = subTasks.values().stream()
+        long minutes = subTasks.values().stream()
                 .filter(subTask -> subTask.getDuration() != null)
-                .collect(Collectors.summingLong(subTask -> subTask.getDuration().toMinutes()));
+                .mapToLong(subTask -> subTask.getDuration().toMinutes()).sum();
 
         if (minutes != 0)
             duration = Duration.ofMinutes(minutes);

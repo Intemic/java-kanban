@@ -158,6 +158,15 @@ class TaskTest {
         assertEquals("Некорректный входной параметр", deserExcept.getMessage(),
                 "Ошибка обработки исключения при пустом параметре");
 
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Duration duration = Duration.ofMinutes(45);
+        task = new Task("Обычная задача", "Выполнить задачу обязательно", localDateTime, duration);
+        task.setStatus(Status.DONE);
+        serialized = task.serialization();
+
+        restoreTask = Task.deserilization(serialized);
+        assertEquals(localDateTime, restoreTask.getStartTime(), "Ошибка восстановления даты начала");
+        assertEquals(duration, restoreTask.getDuration(), "Ошибка восстановления длительности");
     }
 
     @DisplayName("Проверка корректности временных значений")
@@ -171,7 +180,7 @@ class TaskTest {
         assertNull(task.getEndTime(), "Ошибка расчета времени окончания");
 
         task = new Task(task.getName(), task.getDescription(), localDateTime, null);
-        assertTrue(localDateTime.equals(task.getStartTime()), "Ошибка определения даты начала");
+        assertEquals(localDateTime, task.getStartTime(), "Ошибка определения даты начала");
         assertNull(task.getDuration(), "Ошибка определения длительности");
         assertNull(task.getEndTime(), "Ошибка расчета времени окончания");
 
@@ -181,7 +190,7 @@ class TaskTest {
                 except.getMessage(), "Ошибка проверки входных параметров");
 
         task = new Task(task.getName(), task.getDescription(), localDateTime, duration);
-        assertTrue(duration.equals(task.getDuration()), "Ошибка определения длительности");
-        assertTrue(localDateTime.plus(duration).equals(task.getEndTime()), "Ошибка расчета времени окончания");
+        assertEquals(duration, task.getDuration(), "Ошибка определения длительности");
+        assertEquals(localDateTime.plus(duration), task.getEndTime(), "Ошибка расчета времени окончания");
     }
 }
