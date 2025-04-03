@@ -184,4 +184,8 @@ public class InMemoryTaskManagerAlternative implements TaskManager {
         return history.getHistory();
     }
 
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        throw new UnsupportedOperationException();
+    }
 }

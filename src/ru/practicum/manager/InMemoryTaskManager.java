@@ -6,16 +6,14 @@ import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, Task> tasks = new HashMap<>();
     protected HashMap<Integer, Epic> epics = new HashMap<>();
     protected HashMap<Integer, SubTask> subTasks = new HashMap<>();
     protected final HistoryManager history = Managers.getDefaultHistory();
+    protected TreeSet<Task>  prioritizedTasks = new TreeSet<>(Task::compareTo);
 
     @Override
     public void createTask(Task task) {
@@ -23,6 +21,7 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NullPointerException();
 
         tasks.put(task.getId(), task);
+        prioritizedTasks.add(task);
     }
 
     @Override
@@ -31,10 +30,14 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NullPointerException();
 
         epics.put(epic.getId(), epic);
+        prioritizedTasks.add(epic);
+
         // добавляем подзадачи, вдруг еще не присутствуют
         // без цикла не получится getSubTasks() возвращает ArrayList
-        for (SubTask subTask : epic.getSubTasks())
+        for (SubTask subTask : epic.getSubTasks()) {
             subTasks.put(subTask.getId(), subTask);
+            prioritizedTasks.add(subTask);
+        }
     }
 
     @Override
@@ -50,9 +53,11 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NotFoundException();
 
         subTasks.put(subTask.getId(), subTask);
+        prioritizedTasks.add(subTask);
     }
 
     // получаем все values конкретного HasMap
+    @SuppressWarnings("unchecked")
     private <T extends Task> ArrayList<T> getValuesForType(Class<? extends Task> type) {
         ArrayList<T> elements = new ArrayList<>();
 
@@ -67,6 +72,7 @@ public class InMemoryTaskManager implements TaskManager {
         return elements;
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Task> ArrayList<T> getElements(Class<? extends Task> type, boolean isClone) {
         ArrayList<T> elementsCopy = new ArrayList<>();
 
@@ -81,6 +87,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // поиск
+    @SuppressWarnings("unchecked")
     private <T extends Task> T getElement(Class<? extends Task> type, int id, boolean isClone) {
         T result = null;
 
@@ -109,8 +116,11 @@ public class InMemoryTaskManager implements TaskManager {
 
         if (element != null) {
             oldElement = getElement(type, element.getId(), false);
-            if (oldElement != null)
+            if (oldElement != null) {
                 oldElement.update(element);
+                prioritizedTasks.remove(oldElement);
+                prioritizedTasks.add(element);
+            }
         }
     }
 
@@ -131,8 +141,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAllTasks() {
-        for (Task task : tasks.values())
+        for (Task task : tasks.values()) {
             history.remove(task.getId());
+            prioritizedTasks.remove(task);
+        }
 
         tasks.clear();
     }
@@ -144,6 +156,7 @@ public class InMemoryTaskManager implements TaskManager {
         for (Epic epic : new ArrayList<>(epics.values())) {
             history.remove(epic.getId());
             epics.remove(epic.getId());
+            prioritizedTasks.remove(epic);
         }
     }
 
@@ -156,6 +169,7 @@ public class InMemoryTaskManager implements TaskManager {
 
             epics.get(subTask.getParentId()).deleteSubTask(subTask.getId());
             subTasks.remove(subTask.getId());
+            prioritizedTasks.remove(subTask);
         }
     }
 
@@ -192,5 +206,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getHistory() {
         return history.getHistory();
+    }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return prioritizedTasks.stream().toList();
     }
 }
