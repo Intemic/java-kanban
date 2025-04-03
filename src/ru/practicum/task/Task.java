@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@SuppressWarnings("static-access")
 public class Task implements Comparable<Task> {
     private static int uid;
     private int id;
@@ -54,14 +55,16 @@ public class Task implements Comparable<Task> {
         if (description == null || description.isEmpty())
             throw new NullPointerException("Отсутствует описание");
 
-        if (duration != null && startTime == null)
-            throw new NullPointerException("Не заполнена дана начала задачи, при заполненной продолжительности");
+        // если не указали заполнить текущей
+        if (startTime == null)
+            this.startTime = LocalDateTime.now();
+        else
+            this.startTime = startTime;
 
         this.id = ++uid;
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
-        this.startTime = startTime;
         this.duration = duration;
     }
 
@@ -87,6 +90,8 @@ public class Task implements Comparable<Task> {
         if (task != null && this.id == task.getId()) {
             setName(task.name);
             setDescription(task.description);
+            setStartTime(task.startTime);
+            setDuration(task.duration);
             try {
                 setStatus(task.status);
             } catch (UnsupportedOperationException e) {
@@ -249,13 +254,6 @@ public class Task implements Comparable<Task> {
         }
     }
 
-    public LocalDateTime getEndTime() {
-        if (getStartTime() != null && getDuration() != null)
-            return getStartTime().plus(getDuration());
-
-        return null;
-    }
-
     protected void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
@@ -270,6 +268,13 @@ public class Task implements Comparable<Task> {
 
     public Duration getDuration() {
         return duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (getStartTime() != null && getDuration() != null)
+            return getStartTime().plus(getDuration());
+
+        return null;
     }
 
     @Override

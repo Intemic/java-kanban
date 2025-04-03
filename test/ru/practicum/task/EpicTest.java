@@ -148,11 +148,10 @@ class EpicTest {
 
         int index = 1;
         // без даты
-        subTask = new SubTask("Подзадача " + index, "Описание подзадачи " + index, epic);
-        assertNull(epic.getStartTime(), "Ошибка определения даты начала");
+        SubTask subTaskEmpty = new SubTask("Подзадача " + index, "Описание подзадачи " + index, epic);
+        assertEquals(subTaskEmpty.getStartTime(), epic.getStartTime(), "Ошибка определения даты начала");
         assertNull(epic.getDuration(), "Ошибка определения длительности");
         assertNull(epic.getEndTime(), "Ошибка расчета времени окончания");
-
 
         for (Map.Entry<LocalDateTime, Long> entry : map.entrySet()) {
             index++;
@@ -164,12 +163,32 @@ class EpicTest {
                 duration = duration.plusMinutes(entry.getValue());
         }
 
+        // если хотя бы у одной подзадачи не указали длительность
+        assertNull(epic.getDuration(), "Ошибка определения длительности");
+
+        epic.deleteSubTask(subTaskEmpty.getId());
+
+        //map.put(subTaskEmpty.getStartTime(), null);
+
         List<LocalDateTime> listDateTime = new ArrayList<>(map.keySet());
         Collections.sort(listDateTime);
 
+        LocalDateTime endDateTime = null;
+        index = listDateTime.size() - 1;
+        if (map.get(listDateTime.get(index)) != 0) {
+            Duration durationLast = Duration.ofMinutes(map.get(listDateTime.get(index)));
+            endDateTime = listDateTime.get(index).plus(durationLast);
+        }
+
         assertTrue(listDateTime.get(0).equals(epic.getStartTime()), "Ошибка определения даты начала");
         assertTrue(duration.equals(epic.getDuration()), "Ошибка определения длительности");
-        LocalDateTime finishDateTime = epic.getStartTime().plusMinutes(epic.getDuration().toMinutes());
-        assertTrue(finishDateTime.equals(epic.getEndTime()), "Ошибка расчета времени окончания");
+        //LocalDateTime finishDateTime = epic.getStartTime().plusMinutes(epic.getDuration().toMinutes());
+        assertEquals(endDateTime, epic.getEndTime(), "Ошибка расчета времени окончания");
+
+        // с самой большой датой начала и без продолжительности
+        subTask = new SubTask("Подзадача N",
+                "Описание подзадачи N", epic,
+                LocalDateTime.of(9999, 10, 05, 12, 40), null);
+        assertNull(epic.getEndTime(), "Ошибка расчета времени окончания");
     }
 }

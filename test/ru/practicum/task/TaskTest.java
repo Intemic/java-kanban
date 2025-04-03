@@ -175,7 +175,7 @@ class TaskTest {
         LocalDateTime localDateTime = LocalDateTime.now();
         Duration duration = Duration.ofMinutes(60);
 
-        assertNull(task.getStartTime(), "Ошибка определения даты начала");
+        assertNotNull(task.getStartTime(), "Ошибка определения даты начала");
         assertNull(task.getDuration(), "Ошибка определения длительности");
         assertNull(task.getEndTime(), "Ошибка расчета времени окончания");
 
@@ -183,11 +183,6 @@ class TaskTest {
         assertEquals(localDateTime, task.getStartTime(), "Ошибка определения даты начала");
         assertNull(task.getDuration(), "Ошибка определения длительности");
         assertNull(task.getEndTime(), "Ошибка расчета времени окончания");
-
-        NullPointerException except = assertThrows(NullPointerException.class,
-                () -> new Task(task.getName(), task.getDescription(), null, duration));
-        assertEquals("Не заполнена дана начала задачи, при заполненной продолжительности",
-                except.getMessage(), "Ошибка проверки входных параметров");
 
         task = new Task(task.getName(), task.getDescription(), localDateTime, duration);
         assertEquals(duration, task.getDuration(), "Ошибка определения длительности");

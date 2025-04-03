@@ -2,11 +2,7 @@ package ru.practicum.task;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class Epic extends Task {
     private HashMap<Integer, SubTask> subTasks = new HashMap<>();
@@ -68,10 +64,8 @@ public class Epic extends Task {
     }
 
     public void deleteSubTask(SubTask subTask) {
-        boolean result;
-
         if (subTask != null) {
-            result = subTasks.remove(subTask.getId()) != null;
+            subTasks.remove(subTask.getId());
         }
     }
 
@@ -134,13 +128,13 @@ public class Epic extends Task {
     public LocalDateTime getStartTime() {
         LocalDateTime startTime = null;
 
-        Optional<SubTask> minTask = subTasks.values().stream()
-                .filter(subTask -> subTask.getStartTime() != null)
-                .min((subTask1, subTask2) ->
-                        subTask1.getStartTime().compareTo(subTask2.getStartTime()));
+        Optional<SubTask> minOptionTask = subTasks.values().stream()
+                .min(Comparator.comparing(Task::getStartTime));
+//                .min((subTask1, subTask2) ->
+//                        subTask1.getStartTime().compareTo(subTask2.getStartTime()));
 
-        if (minTask.isPresent())
-            startTime = minTask.get().getStartTime();
+        if (minOptionTask.isPresent())
+            startTime = minOptionTask.get().getStartTime();
 
         // будем заполнять поле для записи в файл
         setStartTime(startTime);
@@ -152,16 +146,39 @@ public class Epic extends Task {
     public Duration getDuration() {
         Duration duration = null;
 
-        long minutes = subTasks.values().stream()
-                .filter(subTask -> subTask.getDuration() != null)
-                .mapToLong(subTask -> subTask.getDuration().toMinutes()).sum();
+        /* если есть подзадача с датой начала, но без продолжительности,
+         то тогда эпик по идее должен быть бесконечный */
+        if (subTasks.values().stream()
+                .filter(subTask -> subTask.getDuration() == null)
+                .findFirst().isEmpty()) {
+            long minutes = subTasks.values().stream()
+                    .mapToLong(subTask -> subTask.getDuration().toMinutes()).sum();
 
-        if (minutes != 0)
-            duration = Duration.ofMinutes(minutes);
+            if (minutes != 0)
+                duration = Duration.ofMinutes(minutes);
+        }
 
         setDuration(duration);
 
         return duration;
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        LocalDateTime endDateTime = null;
+
+        Optional<SubTask> maxOptionTask = subTasks.values().stream()
+                .max(Comparator.comparing(Task::getStartTime));
+        if (maxOptionTask.isPresent()) {
+          /* заполняем только если есть продолжительность, иначе
+          эпик не имеет даты окончания
+           */
+          SubTask subTask = maxOptionTask.get();
+          if (subTask.getDuration() != null)
+              endDateTime = subTask.getStartTime().plus(subTask.getDuration());
+        }
+
+        return endDateTime;
     }
 
     public static void main(String[] args) {
