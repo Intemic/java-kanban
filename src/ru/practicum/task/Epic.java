@@ -83,8 +83,6 @@ public class Epic extends Task {
 
     @Override
     public void update(Task task) {
-
-//    public void update(Epic epic) {
         if (task != null && task.getClass() == Epic.class && this.getId() == task.getId()) {
             super.update(task);
 
@@ -130,8 +128,6 @@ public class Epic extends Task {
 
         Optional<SubTask> minOptionTask = subTasks.values().stream()
                 .min(Comparator.comparing(Task::getStartTime));
-//                .min((subTask1, subTask2) ->
-//                        subTask1.getStartTime().compareTo(subTask2.getStartTime()));
 
         if (minOptionTask.isPresent())
             startTime = minOptionTask.get().getStartTime();

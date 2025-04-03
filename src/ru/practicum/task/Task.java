@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@SuppressWarnings("static-access")
 public class Task implements Comparable<Task> {
     private static int uid;
     private int id;
@@ -36,12 +35,6 @@ public class Task implements Comparable<Task> {
     // нужен для создания объекта без изменения uid
     protected Task(Task task) {
         this(Task.uid, task.id, task.name, task.description, task.status, task.startTime, task.duration);
-//        this.id = task.id;
-//        this.name = task.name;
-//        this.description = task.description;
-//        this.status = task.status;
-//        this.startTime = task.startTime;
-//        this.duration = task.duration;
     }
 
     public Task(String name, String description) {
@@ -280,6 +273,19 @@ public class Task implements Comparable<Task> {
     @Override
     // естественная сортировка будет по дате начала
     public int compareTo(Task o) {
-        return getStartTime().compareTo(o.getStartTime());
+        int result = -1;
+
+        if (this.getStartTime() == null)
+            return result;
+        else if (o.getStartTime() == null)
+            return 1;
+        else
+          result = this.getStartTime().compareTo(o.getStartTime());
+
+        // одинаковые дата/время, по id
+        if (result == 0)
+            result = o.id - this.id;
+
+        return result;
     }
 }

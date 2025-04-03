@@ -13,7 +13,8 @@ public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, Epic> epics = new HashMap<>();
     protected HashMap<Integer, SubTask> subTasks = new HashMap<>();
     protected final HistoryManager history = Managers.getDefaultHistory();
-    protected TreeSet<Task>  prioritizedTasks = new TreeSet<>(Task::compareTo);
+    protected TreeSet<Task> prioritizedTasks = new TreeSet<>(Task::compareTo);
+
 
     @Override
     public void createTask(Task task) {
@@ -117,9 +118,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (element != null) {
             oldElement = getElement(type, element.getId(), false);
             if (oldElement != null) {
+//                prioritizedTasks.remove(oldElement);
                 oldElement.update(element);
-                prioritizedTasks.remove(oldElement);
-                prioritizedTasks.add(element);
+//                prioritizedTasks.add(element);
             }
         }
     }
