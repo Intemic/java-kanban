@@ -3,6 +3,7 @@ package ru.practicum.task;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Epic extends Task {
     private HashMap<Integer, SubTask> subTasks = new HashMap<>();
@@ -124,24 +125,17 @@ public class Epic extends Task {
 
     @Override
     public LocalDateTime getStartTime() {
-        LocalDateTime startTime = null;
-
         Optional<SubTask> minOptionTask = subTasks.values().stream()
                 .min(Comparator.comparing(Task::getStartTime));
 
         if (minOptionTask.isPresent())
             startTime = minOptionTask.get().getStartTime();
 
-        // будем заполнять поле для записи в файл
-        setStartTime(startTime);
-
-        return super.getStartTime();
+        return startTime;
     }
 
     @Override
     public Duration getDuration() {
-        Duration duration = null;
-
         /* если есть подзадача с датой начала, но без продолжительности,
          то тогда эпик по идее должен быть бесконечный */
         if (subTasks.values().stream()
@@ -153,8 +147,6 @@ public class Epic extends Task {
             if (minutes != 0)
                 duration = Duration.ofMinutes(minutes);
         }
-
-        setDuration(duration);
 
         return duration;
     }

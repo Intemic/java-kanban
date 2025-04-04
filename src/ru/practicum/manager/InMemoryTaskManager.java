@@ -13,8 +13,29 @@ public class InMemoryTaskManager implements TaskManager {
     protected HashMap<Integer, Epic> epics = new HashMap<>();
     protected HashMap<Integer, SubTask> subTasks = new HashMap<>();
     protected final HistoryManager history = Managers.getDefaultHistory();
-    protected TreeSet<Task> prioritizedTasks = new TreeSet<>(Task::compareTo);
+    protected ProxyTaskTreeSet proxyTaskTreeSet = new ProxyTaskTreeSet();
 
+    protected class ProxyTaskTreeSet {
+        private TreeSet<Task> sortedTasks = new TreeSet<>(Task::compareTo);
+
+        public void add(Task task) {
+            if (task.getStartTime() != null)
+                sortedTasks.add(task.clone());
+        }
+
+        public void remove(Task task) {
+            sortedTasks.remove(task);
+        }
+
+        public void modify(Task oldTask, Task newTask) {
+            sortedTasks.remove(oldTask);
+            sortedTasks.add(newTask);
+        }
+
+        public List<Task> getPrioritizedTasks() {
+            return sortedTasks.stream().toList();
+        }
+    }
 
     @Override
     public void createTask(Task task) {
@@ -22,7 +43,7 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NullPointerException();
 
         tasks.put(task.getId(), task);
-        prioritizedTasks.add(task);
+        proxyTaskTreeSet.add(task);
     }
 
     @Override
@@ -31,13 +52,13 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NullPointerException();
 
         epics.put(epic.getId(), epic);
-        prioritizedTasks.add(epic);
+        proxyTaskTreeSet.add(epic);
 
         // добавляем подзадачи, вдруг еще не присутствуют
         // без цикла не получится getSubTasks() возвращает ArrayList
         for (SubTask subTask : epic.getSubTasks()) {
             subTasks.put(subTask.getId(), subTask);
-            prioritizedTasks.add(subTask);
+            proxyTaskTreeSet.add(subTask);
         }
     }
 
@@ -54,7 +75,8 @@ public class InMemoryTaskManager implements TaskManager {
             throw new NotFoundException();
 
         subTasks.put(subTask.getId(), subTask);
-        prioritizedTasks.add(subTask);
+        //prioritizedTasks.add(subTask);
+        proxyTaskTreeSet.add(subTask);
     }
 
     // получаем все values конкретного HasMap
@@ -118,9 +140,9 @@ public class InMemoryTaskManager implements TaskManager {
         if (element != null) {
             oldElement = getElement(type, element.getId(), false);
             if (oldElement != null) {
-//                prioritizedTasks.remove(oldElement);
+                Task cloneElement = oldElement.clone();
                 oldElement.update(element);
-//                prioritizedTasks.add(element);
+                proxyTaskTreeSet.modify(cloneElement, oldElement);
             }
         }
     }
@@ -144,7 +166,8 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteAllTasks() {
         for (Task task : tasks.values()) {
             history.remove(task.getId());
-            prioritizedTasks.remove(task);
+            //prioritizedTasks.remove(task);
+            proxyTaskTreeSet.remove(task);
         }
 
         tasks.clear();
@@ -157,7 +180,8 @@ public class InMemoryTaskManager implements TaskManager {
         for (Epic epic : new ArrayList<>(epics.values())) {
             history.remove(epic.getId());
             epics.remove(epic.getId());
-            prioritizedTasks.remove(epic);
+            //prioritizedTasks.remove(epic);
+            proxyTaskTreeSet.remove(epic);
         }
     }
 
@@ -170,7 +194,8 @@ public class InMemoryTaskManager implements TaskManager {
 
             epics.get(subTask.getParentId()).deleteSubTask(subTask.getId());
             subTasks.remove(subTask.getId());
-            prioritizedTasks.remove(subTask);
+            //prioritizedTasks.remove(subTask);
+            proxyTaskTreeSet.remove(subTask);
         }
     }
 
@@ -211,6 +236,6 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Task> getPrioritizedTasks() {
-        return prioritizedTasks.stream().toList();
+        return proxyTaskTreeSet.getPrioritizedTasks();
     }
 }

@@ -270,20 +270,20 @@ public abstract class InTaskManagerBaseTest {
                 "Ошибка формирования сортированного списка");
 
 
-//        task = taskManager.getTasks().get(random.nextInt(taskManager.getTasks().size() - 1) + 1);
-//        task.setStartTime((LocalDateTime.now()).minusDays(1));
-//        taskManager.modifyTask(task);
-//
-//        allTasks.clear();
-//        allTasks.addAll(taskManager.getTasks());
-//        allTasks.addAll(taskManager.getEpics());
-//        allTasks.addAll(taskManager.getSubTasks());
-//        Collections.sort(allTasks);
-//
-//        List<Task> sort = taskManager.getPrioritizedTasks();
-//
-//        assertEquals(allTasks, taskManager.getPrioritizedTasks(),
-//                "Ошибка формирования сортированного списка");
+        task = taskManager.getTasks().get(random.nextInt(taskManager.getTasks().size() - 1) + 1);
+        task.setStartTime((LocalDateTime.now()).minusDays(1));
+        taskManager.modifyTask(task);
+
+        allTasks.clear();
+        allTasks.addAll(taskManager.getTasks());
+        allTasks.addAll(taskManager.getEpics());
+        allTasks.addAll(taskManager.getSubTasks());
+        Collections.sort(allTasks);
+
+        List<Task> sort = taskManager.getPrioritizedTasks();
+
+        assertEquals(allTasks, taskManager.getPrioritizedTasks(),
+                "Ошибка формирования сортированного списка");
 
 
         taskManager.deleteAllTasks();

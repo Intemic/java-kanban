@@ -16,8 +16,8 @@ public class Task implements Comparable<Task> {
     private String name;
     private String description;
     protected Status status;
-    private LocalDateTime startTime;
-    private Duration duration;
+    protected LocalDateTime startTime;
+    protected Duration duration;
 
     // для создания из строки
     @SuppressWarnings("static-access")
@@ -48,11 +48,10 @@ public class Task implements Comparable<Task> {
         if (description == null || description.isEmpty())
             throw new NullPointerException("Отсутствует описание");
 
+        this.startTime = startTime;
         // если не указали заполнить текущей
-        if (startTime == null)
+        if (this.startTime == null)
             this.startTime = LocalDateTime.now();
-        else
-            this.startTime = startTime;
 
         this.id = ++uid;
         this.name = name;
@@ -81,10 +80,10 @@ public class Task implements Comparable<Task> {
 
     public void update(Task task) {
         if (task != null && this.id == task.getId()) {
-            setName(task.name);
-            setDescription(task.description);
-            setStartTime(task.startTime);
-            setDuration(task.duration);
+            name = task.name;
+            description = task.description;
+            startTime = task.getStartTime();
+            duration = task.getDuration();
             try {
                 setStatus(task.status);
             } catch (UnsupportedOperationException e) {
@@ -134,6 +133,8 @@ public class Task implements Comparable<Task> {
                 ", name='" + (name != null ? name : "null") + '\'' +
                 ", description='" + (description != null ? description : "null") + '\'' +
                 ", status=" + status +
+                ", startTime=" + (startTime != null ? startTime.toString() : "null") + '\'' +
+                ", duration=" + (duration != null ? duration.toString() : "null") + '\'' +
                 '}';
     }
 
@@ -247,11 +248,16 @@ public class Task implements Comparable<Task> {
         }
     }
 
-    protected void setStartTime(LocalDateTime startTime) {
+    public void setStartTime(LocalDateTime startTime) {
+        // дата начала не может быть пустой
+        if (startTime == null)
+            throw new NullPointerException("Отсутствует значение");
+
         this.startTime = startTime;
     }
 
-    protected void setDuration(Duration duration) {
+    public void setDuration(Duration duration) {
+        // длительность может
         this.duration = duration;
     }
 
