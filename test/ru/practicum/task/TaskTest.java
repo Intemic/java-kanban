@@ -148,12 +148,12 @@ class TaskTest {
         assertEquals(Epic.class, restoreTask.getClass());
 
         DeserilizationException deserExcept = assertThrows(DeserilizationException.class,
-                    new Executable() {
-                        @Override
-                        public void execute() {
-                            Task.deserilization(new String());
-                        }
-                    });
+                new Executable() {
+                    @Override
+                    public void execute() {
+                        Task.deserilization(new String());
+                    }
+                });
 
         assertEquals("Некорректный входной параметр", deserExcept.getMessage(),
                 "Ошибка обработки исключения при пустом параметре");
@@ -187,5 +187,37 @@ class TaskTest {
         task = new Task(task.getName(), task.getDescription(), localDateTime, duration);
         assertEquals(duration, task.getDuration(), "Ошибка определения длительности");
         assertEquals(localDateTime.plus(duration), task.getEndTime(), "Ошибка расчета времени окончания");
+    }
+
+    @DisplayName("Проверка корректности метода вхождения в интервал")
+    @Test
+    public void checkIsTaskIntervalOverlap() {
+        Task secondTask = null;
+
+        // нет продолжительности у обоих
+        secondTask = new Task("Вторая задача", "Описание второй задачи");
+        assertFalse(task.isTaskIntervalOverlap(secondTask),
+                "Ошибка определения интервалов без продолжительности");
+
+        // одна задача без продолжительности
+        task.setDuration(Duration.ofDays(1));
+        assertFalse(task.isTaskIntervalOverlap(secondTask),
+                "Ошибка определения интервалов без продолжительности");
+
+        // вторая задача входит в интервал
+        secondTask = new Task("Вторая задача", "Описание второй задачи",
+                LocalDateTime.now().plusHours(4), Duration.ofDays(1));
+        assertTrue(task.isTaskIntervalOverlap(secondTask), "Ошибка определения пересекающихся интервалов");
+
+        // первая задача входит в интевал второй
+        task.setStartTime(secondTask.getStartTime().plusHours(4));
+        task.setDuration(Duration.ofHours(12));
+        assertTrue(task.isTaskIntervalOverlap(secondTask), "Ошибка определения пересекающихся интервалов");
+
+        // интервалы не пересекаются
+        task.setStartTime(LocalDateTime.now().plusDays(2));
+        assertFalse(task.isTaskIntervalOverlap(secondTask),
+                "Ошибка определения интервалов без пересечения");
+
     }
 }
