@@ -7,6 +7,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -286,12 +287,29 @@ public class Task implements Comparable<Task> {
         else if (o.getStartTime() == null)
             return 1;
         else
-          result = this.getStartTime().compareTo(o.getStartTime());
+            result = this.getStartTime().compareTo(o.getStartTime());
 
         // одинаковые дата/время, по id
         if (result == 0)
             result = o.id - this.id;
 
         return result;
+    }
+
+    private boolean isDateInInterval(LocalDateTime start, LocalDateTime end, LocalDateTime date) {
+        return (start.isBefore(date) || start.equals(date))
+                && (end.isAfter(date) || end.equals(date));
+    }
+
+    public boolean isTaskIntervalOverlap(Task task) {
+        // нужны только конкретные интервалы
+        if (this.getEndTime() == null || task.getEndTime() == null)
+            return false;
+
+        return isDateInInterval(this.getStartTime(), this.getEndTime(), task.getStartTime())
+                || isDateInInterval(this.getStartTime(), this.getEndTime(), task.getEndTime())
+                || isDateInInterval(task.getStartTime(), task.getEndTime(), this.getStartTime())
+                || isDateInInterval(task.getStartTime(), task.getEndTime(), this.getEndTime());
+
     }
 }
