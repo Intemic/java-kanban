@@ -7,7 +7,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -304,6 +303,9 @@ public class Task implements Comparable<Task> {
     public boolean isTaskIntervalOverlap(Task task) {
         // нужны только конкретные интервалы
         if (this.getEndTime() == null || task.getEndTime() == null)
+            return false;
+
+        if (this.id == task.id)
             return false;
 
         return isDateInInterval(this.getStartTime(), this.getEndTime(), task.getStartTime())

@@ -18,7 +18,6 @@ class EpicTest {
     @BeforeEach
     public void initial() {
         epic = new Epic("Новый эпис", "Что то сделать");
-//        subTask = new SubTask("Новая подзадача", "Делаем что то важное", epic);
     }
 
     @DisplayName("Проверяем корректное создание объекта")

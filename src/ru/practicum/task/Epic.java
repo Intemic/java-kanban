@@ -3,7 +3,6 @@ package ru.practicum.task;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Epic extends Task {
     private HashMap<Integer, SubTask> subTasks = new HashMap<>();
@@ -161,9 +160,9 @@ public class Epic extends Task {
           /* заполняем только если есть продолжительность, иначе
           эпик не имеет даты окончания
            */
-          SubTask subTask = maxOptionTask.get();
-          if (subTask.getDuration() != null)
-              endDateTime = subTask.getStartTime().plus(subTask.getDuration());
+            SubTask subTask = maxOptionTask.get();
+            if (subTask.getDuration() != null)
+                endDateTime = subTask.getStartTime().plus(subTask.getDuration());
         }
 
         return endDateTime;

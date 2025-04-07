@@ -234,7 +234,7 @@ public abstract class InTaskManagerBaseTest {
         taskManager.createSubTask(subTask);
 
         do {
-            map.put(startDateTime.plusMinutes(random.nextLong(300) + 1),
+            map.put(startDateTime.plusDays(random.nextLong(90) + 1),
                     random.nextLong(60) + 1);
         } while (map.size() != count);
 
@@ -256,11 +256,10 @@ public abstract class InTaskManagerBaseTest {
             }
         }
 
-        assertEquals(count + 3, taskManager.getPrioritizedTasks().size(),
+        assertEquals(count + 2, taskManager.getPrioritizedTasks().size(),
                 "Некорректное кол-во элементов");
 
         List<Task> allTasks = new ArrayList<>(taskManager.getTasks());
-        allTasks.addAll(taskManager.getEpics());
         allTasks.addAll(taskManager.getSubTasks());
         Collections.sort(allTasks);
 
@@ -276,7 +275,6 @@ public abstract class InTaskManagerBaseTest {
 
         allTasks.clear();
         allTasks.addAll(taskManager.getTasks());
-        allTasks.addAll(taskManager.getEpics());
         allTasks.addAll(taskManager.getSubTasks());
         Collections.sort(allTasks);
 
@@ -285,10 +283,8 @@ public abstract class InTaskManagerBaseTest {
         assertEquals(allTasks, taskManager.getPrioritizedTasks(),
                 "Ошибка формирования сортированного списка");
 
-
         taskManager.deleteAllTasks();
         allTasks.clear();
-        allTasks.addAll(taskManager.getEpics());
         allTasks.addAll(taskManager.getSubTasks());
         Collections.sort(allTasks);
 

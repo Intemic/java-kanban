@@ -219,5 +219,9 @@ class TaskTest {
         assertFalse(task.isTaskIntervalOverlap(secondTask),
                 "Ошибка определения интервалов без пересечения");
 
+        // не пересикается сама с собой
+        assertFalse(task.isTaskIntervalOverlap(task),
+                "Ошибка определения интервалов, пересекается сама с собой");
+
     }
 }
