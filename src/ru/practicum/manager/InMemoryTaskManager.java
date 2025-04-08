@@ -58,6 +58,11 @@ public class InMemoryTaskManager implements TaskManager {
 
         epics.put(epic.getId(), epic);
 
+        // в данной реализации предусмотрен вариант передачи эпика с заполнеными подзадачами
+        if (epic.getSubTasks().stream()
+                .anyMatch(subTask -> checkTaskIntervalOverlap(subTask)))
+            throw new IllegalArgumentException("Присутствует задача с пересекающимися датами");
+
         subTasks.putAll(epic.getSubTasks().stream()
                 .peek(subTask -> proxyTaskTreeSet.add(subTask))
                 .collect(Collectors.toMap(subTask -> subTask.getId(), subTask -> subTask)));
@@ -183,7 +188,6 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteAllEpics() {
         deleteAllSubTasks();
 
-        // если следовать принципу неизменяемости, здесь наверное нельзя применять Stream API
         for (Epic epic : new ArrayList<>(epics.values())) {
             history.remove(epic.getId());
             epics.remove(epic.getId());
@@ -194,7 +198,6 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteAllSubTasks() {
         Collection<SubTask> subTasksList = new ArrayList<>(subTasks.values());
 
-        // если следовать принципу неизменяемости, здесь наверное нельзя применять Stream API
         for (SubTask subTask : subTasksList) {
             history.remove(subTask.getId());
 
