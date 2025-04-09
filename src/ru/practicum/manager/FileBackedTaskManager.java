@@ -19,6 +19,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.tasks = tasks;
         this.epics = epics;
         this.subTasks = subTasks;
+
+        List<Task> listTasks = new ArrayList<>(this.tasks.values());
+        listTasks.addAll(this.epics.values());
+        listTasks.addAll(this.subTasks.values());
+        for (Task task : listTasks)
+            this.proxyTaskTreeSet.add(task);
     }
 
     public FileBackedTaskManager(final String filename) {

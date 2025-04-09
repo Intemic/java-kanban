@@ -6,43 +6,58 @@ import ru.practicum.exception.SerializationException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
-public class Task {
+public class Task implements Comparable<Task> {
     private static int uid;
     private int id;
     private String name;
     private String description;
     protected Status status;
+    protected LocalDateTime startTime;
+    protected Duration duration;
 
     // для создания из строки
-    protected Task(int uid, int id, String name, String description, Status status) {
+    @SuppressWarnings("static-access")
+    protected Task(int uid, int id, String name, String description, Status status,
+                   LocalDateTime startTime, Duration duration) {
         this.uid = uid;
         this.id = id;
         this.name = name;
         this.description = description;
         this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
     }
 
     // нужен для создания объекта без изменения uid
     protected Task(Task task) {
-        this.id = task.id;
-        this.name = task.name;
-        this.description = task.description;
-        this.status = task.status;
+        this(Task.uid, task.id, task.name, task.description, task.status, task.startTime, task.duration);
     }
 
     public Task(String name, String description) {
+        this(name, description, null, null);
+    }
+
+    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
         if (name == null || name.isEmpty())
-            throw new NullPointerException();
+            throw new NullPointerException("Отсутствует наименование");
 
         if (description == null || description.isEmpty())
-            throw new NullPointerException();
+            throw new NullPointerException("Отсутствует описание");
+
+        this.startTime = startTime;
+        // если не указали заполнить текущей
+        if (this.startTime == null)
+            this.startTime = LocalDateTime.now();
 
         this.id = ++uid;
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
+        this.duration = duration;
     }
 
     public String getName() {
@@ -65,8 +80,10 @@ public class Task {
 
     public void update(Task task) {
         if (task != null && this.id == task.getId()) {
-            setName(task.name);
-            setDescription(task.description);
+            name = task.name;
+            description = task.description;
+            startTime = task.getStartTime();
+            duration = task.getDuration();
             try {
                 setStatus(task.status);
             } catch (UnsupportedOperationException e) {
@@ -116,16 +133,18 @@ public class Task {
                 ", name='" + (name != null ? name : "null") + '\'' +
                 ", description='" + (description != null ? description : "null") + '\'' +
                 ", status=" + status +
+                ", startTime=" + (startTime != null ? startTime.toString() : "null") + '\'' +
+                ", duration=" + (duration != null ? duration.toString() : "null") + '\'' +
                 '}';
     }
 
     /*
-    функциональность сохранения и востановления из csv можно было конечно реализовать
+    функциональность сохранения и восстановления из csv можно было конечно реализовать
     намного проще, но данная реализация была сделана с целью применить полученные
     знания на практике
     */
 
-    // получаем перечень полей для сохранения/востановления
+    // получаем перечень полей для сохранения/восстановления
     private static Field[] getFields(Class<?> cls) {
         List<Field> result = new LinkedList<>();
 
@@ -151,6 +170,8 @@ public class Task {
         for (Field field : getFields(getClass())) {
             if (field.get(this) != null)
                 result.append((field.get(this)).toString());
+            else
+                result.append(" ");
             result.append(",");
         }
 
@@ -164,12 +185,19 @@ public class Task {
         Object[] objects = new Object[fields.length];
 
         for (int i = 0; i < fields.length; i++) {
-            if (fields[i].getType() == int.class)
+            if (fields[i].getType() == int.class) {
                 objects[i] = Integer.parseInt(values[i]);
-            else if (fields[i].getType() == Status.class)
+            } else if (fields[i].getType() == Status.class) {
                 objects[i] = Status.deserilization(values[i]);
-            else
+            } else if (fields[i].getType() == LocalDateTime.class) {
+                if (!values[i].isBlank())
+                    objects[i] = LocalDateTime.parse(values[i]);
+            } else if (fields[i].getType() == Duration.class) {
+                if (!values[i].isBlank())
+                    objects[i] = Duration.parse(values[i]);
+            } else {
                 objects[i] = values[i];
+            }
         }
 
         return objects;
@@ -189,7 +217,7 @@ public class Task {
     }
 
     public static Task deserilization(String data) {
-        String className = null;
+        String className;
 
         if (data.isBlank())
             throw new DeserilizationException("Некорректный входной параметр");
@@ -218,5 +246,72 @@ public class Task {
                  NoSuchMethodException | ClassNotFoundException e) {
             throw new DeserilizationException(e.getMessage());
         }
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        // дата начала не может быть пустой
+        if (startTime == null)
+            throw new NullPointerException("Отсутствует значение");
+
+        this.startTime = startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        // длительность может
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        if (getStartTime() != null && getDuration() != null)
+            return getStartTime().plus(getDuration());
+
+        return null;
+    }
+
+    @Override
+    // естественная сортировка будет по дате начала
+    public int compareTo(Task o) {
+        int result = -1;
+
+        if (this.getStartTime() == null)
+            return result;
+        else if (o.getStartTime() == null)
+            return 1;
+        else
+            result = this.getStartTime().compareTo(o.getStartTime());
+
+        // одинаковые дата/время, по id
+        if (result == 0)
+            result = o.id - this.id;
+
+        return result;
+    }
+
+    private boolean isDateInInterval(LocalDateTime start, LocalDateTime end, LocalDateTime date) {
+        return (start.isBefore(date) || start.equals(date))
+                && (end.isAfter(date) || end.equals(date));
+    }
+
+    public boolean isTaskIntervalOverlap(Task task) {
+        // нужны только конкретные интервалы
+        if (this.getEndTime() == null || task.getEndTime() == null)
+            return false;
+
+        if (this.id == task.id)
+            return false;
+
+        return isDateInInterval(this.getStartTime(), this.getEndTime(), task.getStartTime())
+                || isDateInInterval(this.getStartTime(), this.getEndTime(), task.getEndTime())
+                || isDateInInterval(task.getStartTime(), task.getEndTime(), this.getStartTime())
+                || isDateInInterval(task.getStartTime(), task.getEndTime(), this.getEndTime());
+
     }
 }

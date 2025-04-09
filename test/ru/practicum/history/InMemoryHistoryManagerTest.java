@@ -8,6 +8,8 @@ import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
@@ -132,6 +134,37 @@ class InMemoryHistoryManagerTest {
 
         history.remove(5);
 
+    }
+
+    @DisplayName("Проверка истории изменений")
+    @Test
+    public void testHistory() {
+        history = new InMemoryHistoryManager(configNoLimit);
+
+        history.add(task);
+        history.add(epic);
+        history.add(subTask);
+
+        assertEquals(3, history.getHistory().size(), "Некорректное кол-во элементов");
+        List<Task> historyList = history.getHistory();
+        assertEquals(task, historyList.get(0), "Сбой порядка элементов в истории");
+        assertEquals(subTask, historyList.get(2), "Сбой порядка элементов в истории");
+
+        history.remove(subTask.getId());
+        assertEquals(2, history.getHistory().size(), "Некорректное кол-во элементов");
+
+        history.remove(task.getId());
+        history.remove(epic.getId());
+        assertEquals(0, history.getHistory().size(), "Некорректное кол-во элементов");
+
+        history.add(task);
+        history.add(epic);
+        history.add(subTask);
+
+        history.remove(epic.getId());
+        historyList = history.getHistory();
+        assertEquals(task, historyList.get(0), "Сбой порядка элементов в истории");
+        assertEquals(subTask, historyList.get(1), "Сбой порядка элементов в истории");
     }
 
 }

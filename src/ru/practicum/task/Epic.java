@@ -1,15 +1,16 @@
 package ru.practicum.task;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class Epic extends Task {
     private HashMap<Integer, SubTask> subTasks = new HashMap<>();
 
     // для создания из строки
-    private Epic(int uid, int id, String name, String description, Status status) {
-       super(uid, id, name, description, status);
+    private Epic(int uid, int id, String name, String description, Status status,
+                 LocalDateTime startTime, Duration duration) {
+        super(uid, id, name, description, status, startTime, duration);
     }
 
     private Epic(Epic epic) {
@@ -63,10 +64,8 @@ public class Epic extends Task {
     }
 
     public void deleteSubTask(SubTask subTask) {
-        boolean result;
-
         if (subTask != null) {
-            result = subTasks.remove(subTask.getId()) != null;
+            subTasks.remove(subTask.getId());
         }
     }
 
@@ -84,8 +83,6 @@ public class Epic extends Task {
 
     @Override
     public void update(Task task) {
-
-//    public void update(Epic epic) {
         if (task != null && task.getClass() == Epic.class && this.getId() == task.getId()) {
             super.update(task);
 
@@ -123,6 +120,52 @@ public class Epic extends Task {
                     "subTasks=" + (subTasks != null ? subTasks.toString() : "null") + ", ").toString();
 
         return result;
+    }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        Optional<SubTask> minOptionTask = subTasks.values().stream()
+                .min(Comparator.comparing(Task::getStartTime));
+
+        if (minOptionTask.isPresent())
+            startTime = minOptionTask.get().getStartTime();
+
+        return startTime;
+    }
+
+    @Override
+    public Duration getDuration() {
+        /* если есть подзадача с датой начала, но без продолжительности,
+         то тогда эпик по идее должен быть бесконечный */
+        if (subTasks.values().stream()
+                .filter(subTask -> subTask.getDuration() == null)
+                .findFirst().isEmpty()) {
+            long minutes = subTasks.values().stream()
+                    .mapToLong(subTask -> subTask.getDuration().toMinutes()).sum();
+
+            if (minutes != 0)
+                duration = Duration.ofMinutes(minutes);
+        }
+
+        return duration;
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        LocalDateTime endDateTime = null;
+
+        Optional<SubTask> maxOptionTask = subTasks.values().stream()
+                .max(Comparator.comparing(Task::getStartTime));
+        if (maxOptionTask.isPresent()) {
+          /* заполняем только если есть продолжительность, иначе
+          эпик не имеет даты окончания
+           */
+            SubTask subTask = maxOptionTask.get();
+            if (subTask.getDuration() != null)
+                endDateTime = subTask.getStartTime().plus(subTask.getDuration());
+        }
+
+        return endDateTime;
     }
 
     public static void main(String[] args) {

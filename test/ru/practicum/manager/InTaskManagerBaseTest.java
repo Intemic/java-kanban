@@ -7,6 +7,11 @@ import ru.practicum.task.Epic;
 import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class InTaskManagerBaseTest {
@@ -213,4 +218,79 @@ public abstract class InTaskManagerBaseTest {
         assertEquals(0, taskManager.getHistory().size(),
                 "Ошибки в работе истории, при удалении эпиков");
     }
+
+    @DisplayName("Проверка работы метода getPrioritizedTasks")
+    @Test
+    public void testMethodGetPrioritizedTasks() {
+        LocalDateTime startDateTime = LocalDateTime.now();
+        HashMap<LocalDateTime, Long> map = new LinkedHashMap<>();
+        int count = 10;
+        Random random = new Random();
+
+        assertEquals(Collections.EMPTY_LIST, taskManager.getPrioritizedTasks());
+
+        taskManager.createTask(task);
+        taskManager.createEpic(epic);
+        taskManager.createSubTask(subTask);
+
+        do {
+            map.put(startDateTime.plusDays(random.nextLong(90) + 1),
+                    random.nextLong(60) + 1);
+        } while (map.size() != count);
+
+        int index = 1;
+        for (Map.Entry<LocalDateTime, Long> entry : map.entrySet()) {
+            index++;
+
+            if (index <= 5) {
+                subTask = new SubTask("Подзадача " + index,
+                        "Описание подзадачи " + index, epic,
+                        entry.getKey(), Duration.ofMinutes(entry.getValue()));
+
+                taskManager.createSubTask(subTask);
+            } else {
+                task = new Task("Задача " + index,
+                        "Описание задачи " + index, entry.getKey(), Duration.ofMinutes(entry.getValue()));
+
+                taskManager.createTask(task);
+            }
+        }
+
+        assertEquals(count + 2, taskManager.getPrioritizedTasks().size(),
+                "Некорректное кол-во элементов");
+
+        List<Task> allTasks = new ArrayList<>(taskManager.getTasks());
+        allTasks.addAll(taskManager.getSubTasks());
+        Collections.sort(allTasks);
+
+        List<Task> sorted = taskManager.getPrioritizedTasks();
+
+        assertTrue(allTasks.equals(taskManager.getPrioritizedTasks()),
+                "Ошибка формирования сортированного списка");
+
+
+        task = taskManager.getTasks().get(random.nextInt(taskManager.getTasks().size() - 1) + 1);
+        task.setStartTime((LocalDateTime.now()).minusDays(1));
+        taskManager.modifyTask(task);
+
+        allTasks.clear();
+        allTasks.addAll(taskManager.getTasks());
+        allTasks.addAll(taskManager.getSubTasks());
+        Collections.sort(allTasks);
+
+        List<Task> sort = taskManager.getPrioritizedTasks();
+
+        assertEquals(allTasks, taskManager.getPrioritizedTasks(),
+                "Ошибка формирования сортированного списка");
+
+        taskManager.deleteAllTasks();
+        allTasks.clear();
+        allTasks.addAll(taskManager.getSubTasks());
+        Collections.sort(allTasks);
+
+        assertEquals(allTasks, taskManager.getPrioritizedTasks(),
+                "Ошибка формирования сортированного списка");
+
+    }
+
 }

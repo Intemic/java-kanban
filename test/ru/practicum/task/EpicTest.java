@@ -4,7 +4,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EpicTest {
     private Epic epic;
@@ -13,7 +18,6 @@ class EpicTest {
     @BeforeEach
     public void initial() {
         epic = new Epic("Новый эпис", "Что то сделать");
-//        subTask = new SubTask("Новая подзадача", "Делаем что то важное", epic);
     }
 
     @DisplayName("Проверяем корректное создание объекта")
@@ -125,5 +129,65 @@ class EpicTest {
 
         assertNotNull(epic.getSubTaskForId(subTask2.getId()));
         assertEquals(subTask2, epic.getSubTaskForId(subTask2.getId()), "Не корректная работа обновления");
+    }
+
+    @DisplayName("Проверка корректности временных значений")
+    @Test
+    public void checkCorrectTimeValues() {
+        LocalDateTime startDateTime = LocalDateTime.now();
+        HashMap<LocalDateTime, Long> map = new LinkedHashMap<>();
+        int count = 4;
+        Random random = new Random();
+        Duration duration = null;
+
+        do {
+            map.put(startDateTime.plusMinutes(random.nextLong(300) + 1),
+                    random.nextLong(60) + 1);
+        } while (map.size() != count);
+
+        int index = 1;
+        // без даты
+        SubTask subTaskEmpty = new SubTask("Подзадача " + index, "Описание подзадачи " + index, epic);
+        assertEquals(subTaskEmpty.getStartTime(), epic.getStartTime(), "Ошибка определения даты начала");
+        assertNull(epic.getDuration(), "Ошибка определения длительности");
+        assertNull(epic.getEndTime(), "Ошибка расчета времени окончания");
+
+        for (Map.Entry<LocalDateTime, Long> entry : map.entrySet()) {
+            index++;
+            subTask = new SubTask("Подзадача " + index,
+                    "Описание подзадачи " + index, epic, entry.getKey(), Duration.ofMinutes(entry.getValue()));
+            if (duration == null)
+                duration = Duration.ofMinutes(entry.getValue());
+            else
+                duration = duration.plusMinutes(entry.getValue());
+        }
+
+        // если хотя бы у одной подзадачи не указали длительность
+        assertNull(epic.getDuration(), "Ошибка определения длительности");
+
+        epic.deleteSubTask(subTaskEmpty.getId());
+
+        //map.put(subTaskEmpty.getStartTime(), null);
+
+        List<LocalDateTime> listDateTime = new ArrayList<>(map.keySet());
+        Collections.sort(listDateTime);
+
+        LocalDateTime endDateTime = null;
+        index = listDateTime.size() - 1;
+        if (map.get(listDateTime.get(index)) != 0) {
+            Duration durationLast = Duration.ofMinutes(map.get(listDateTime.get(index)));
+            endDateTime = listDateTime.get(index).plus(durationLast);
+        }
+
+        assertTrue(listDateTime.get(0).equals(epic.getStartTime()), "Ошибка определения даты начала");
+        assertTrue(duration.equals(epic.getDuration()), "Ошибка определения длительности");
+        //LocalDateTime finishDateTime = epic.getStartTime().plusMinutes(epic.getDuration().toMinutes());
+        assertEquals(endDateTime, epic.getEndTime(), "Ошибка расчета времени окончания");
+
+        // с самой большой датой начала и без продолжительности
+        subTask = new SubTask("Подзадача N",
+                "Описание подзадачи N", epic,
+                LocalDateTime.of(9999, 10, 05, 12, 40), null);
+        assertNull(epic.getEndTime(), "Ошибка расчета времени окончания");
     }
 }
