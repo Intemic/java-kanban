@@ -127,6 +127,26 @@ public class InMemoryTaskManagerAlternative implements TaskManager {
         return getElement(id, true);
     }
 
+    @Override
+    public Task deleteTask(int id) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SubTask deleteSubTask(int id) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Epic deleteEpic(int id) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<SubTask> getEpicSubTasks(int id) {
+        throw new UnsupportedOperationException();
+    }
+
     private SubTask getSubTaskInner(int id, boolean isClone) {
         SubTask subTask = null;
 

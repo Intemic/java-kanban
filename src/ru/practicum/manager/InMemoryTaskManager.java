@@ -17,7 +17,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected ProxyTaskTreeSet proxyTaskTreeSet = new ProxyTaskTreeSet();
 
     protected class ProxyTaskTreeSet {
-        private TreeSet<Task> sortedTasks = new TreeSet<>(Task::compareTo);
+        private final TreeSet<Task> sortedTasks = new TreeSet<>(Task::compareTo);
 
         public void add(Task task) {
             if (task.getStartTime() != null)
@@ -41,7 +41,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createTask(Task task) {
         if (task == null)
-            throw new NullPointerException("Пустая задача");
+            throw new NotFoundException("Пустая задача");
 
         if (checkTaskIntervalOverlap(task))
             throw new IllegalArgumentException("Присутствует задача с пересекающимися датами");
@@ -54,18 +54,18 @@ public class InMemoryTaskManager implements TaskManager {
     public void createEpic(Epic epic) {
 
         if (epic == null)
-            throw new NullPointerException();
+            throw new NotFoundException("Пустой эпик");
 
         epics.put(epic.getId(), epic);
 
-        // в данной реализации предусмотрен вариант передачи эпика с заполнеными подзадачами
+        // в данной реализации предусмотрен вариант передачи эпика с заполненными подзадачами
         if (epic.getSubTasks().stream()
-                .anyMatch(subTask -> checkTaskIntervalOverlap(subTask)))
+                .anyMatch(this::checkTaskIntervalOverlap))
             throw new IllegalArgumentException("Присутствует задача с пересекающимися датами");
 
         subTasks.putAll(epic.getSubTasks().stream()
                 .peek(subTask -> proxyTaskTreeSet.add(subTask))
-                .collect(Collectors.toMap(subTask -> subTask.getId(), subTask -> subTask)));
+                .collect(Collectors.toMap(Task::getId, subTask -> subTask)));
     }
 
     @Override
@@ -73,12 +73,12 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = null;
 
         if (subTask == null)
-            throw new NullPointerException("Пустая подзадача");
+            throw new NotFoundException("Пустая подзадача");
 
         // эпик для этой задачи
         epic = epics.get(subTask.getParentId());
         if (epic == null)
-            throw new NotFoundException();
+            throw new NotFoundException("Отсутствует связанный эпик");
 
         if (checkTaskIntervalOverlap(subTask))
             throw new IllegalArgumentException("Присутствует задача с пересекающимися датами");
@@ -131,31 +131,38 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         result = (T) elements.get(id);
-        if (isClone && result != null)
+
+        if (result == null)
+            throw new NotFoundException("Элемент не найден");
+
+//        if (isClone && result != null)
+        if (isClone)
             result = (T) result.clone();
 
-        if (result != null)
-            history.add(result.clone());
+//        if (result != null)
+        history.add(result.clone());
 
         return result;
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Task> void modifyElement(Class<? extends Task> type, T element) {
         T oldElement;
         T cloneElement = null;
 
-        if (element != null) {
-            if ((type != Epic.class) && checkTaskIntervalOverlap(element))
-                throw new IllegalArgumentException("Присутствует задача с пересекающимися датами");
+        if (element == null)
+            throw new NotFoundException("Некорректный элемент");
 
-            oldElement = getElement(type, element.getId(), false);
-            if (oldElement != null) {
-                if (type != Epic.class)
-                    cloneElement = (T) oldElement.clone();
-                oldElement.update(element);
-                if (type != Epic.class)
-                    proxyTaskTreeSet.modify(cloneElement, oldElement);
-            }
+        if ((type != Epic.class) && checkTaskIntervalOverlap(element))
+            throw new IllegalArgumentException("Присутствует задача с пересекающимися датами");
+
+        oldElement = getElement(type, element.getId(), false);
+        if (oldElement != null) {
+            if (type != Epic.class)
+                cloneElement = (T) oldElement.clone();
+            oldElement.update(element);
+            if (type != Epic.class)
+                proxyTaskTreeSet.modify(cloneElement, oldElement);
         }
     }
 
@@ -254,5 +261,37 @@ public class InMemoryTaskManager implements TaskManager {
 
         return getPrioritizedTasks().stream()
                 .anyMatch(compareTask -> compareTask.isTaskIntervalOverlap(task));
+    }
+
+    @Override
+    public Task deleteTask(int id) {
+        if (!tasks.containsKey(id))
+            throw new NotFoundException("Задача не найдена");
+
+        return tasks.remove(id);
+    }
+
+    @Override
+    public SubTask deleteSubTask(int id) {
+        if (subTasks.containsKey(id))
+            throw new NotFoundException("Подзадача не найдена");
+
+        return subTasks.remove(id);
+    }
+
+    @Override
+    public Epic deleteEpic(int id) {
+        if (epics.containsKey(id))
+            throw new NotFoundException("Эпик не найден");
+
+        return epics.remove(id);
+    }
+
+    @Override
+    public List<SubTask> getEpicSubTasks(int id) {
+        if (epics.containsKey(id))
+            throw new NotFoundException("Эпик не найден");
+
+        return epics.get(id).getSubTasks();
     }
 }

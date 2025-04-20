@@ -43,4 +43,12 @@ public interface TaskManager {
     List<Task> getPrioritizedTasks();
 
     boolean checkTaskIntervalOverlap(Task task);
+
+    Task deleteTask(int id);
+
+    SubTask deleteSubTask(int id);
+
+    Epic deleteEpic(int id);
+
+    List<SubTask> getEpicSubTasks(int id);
 }
