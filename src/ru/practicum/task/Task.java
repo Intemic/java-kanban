@@ -1,11 +1,15 @@
 package ru.practicum.task;
 
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import ru.practicum.exception.DeserilizationException;
 import ru.practicum.exception.SerializationException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -203,6 +207,36 @@ public class Task implements Comparable<Task> {
         return objects;
     }
 
+    private static Object[] getConstructorParamFromJson(Field[] fields,
+                                                        JsonElement jsonElement,
+                                                        Class<?> cls,
+                                                        JsonDeserializationContext jsonDeserializationContext) {
+        Object[] objects = new Object[fields.length];
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+        JsonElement element = null;
+
+        for (int i = 0; i < fields.length; i++) {
+            element = jsonObject.get(fields[i].getName());
+            if (element == null)
+                objects[i] = null;
+            else {
+                if (fields[i].getType() == int.class) {
+                    objects[i] = element.getAsInt();
+                } else if (fields[i].getType() == Status.class) {
+                    objects[i] = Status.deserilization(element.getAsString());
+                } else if (fields[i].getType() == LocalDateTime.class) {
+                    objects[i] = jsonDeserializationContext.deserialize(element, LocalDateTime.class);
+                } else if (fields[i].getType() == Duration.class) {
+                    objects[i] = jsonDeserializationContext.deserialize(element, Duration.class);
+                } else {
+                    objects[i] = element.getAsString();
+                }
+            }
+        }
+
+        return objects;
+    }
+
     public String serialization() {
         StringBuilder result = new StringBuilder();
         result.append(getClass().getName());
@@ -242,6 +276,40 @@ public class Task implements Comparable<Task> {
             Constructor<?> classConstructor = classTask.getDeclaredConstructor(constructorAttributes);
             classConstructor.setAccessible(true);
             return (Task) classConstructor.newInstance(getConstructorParam(fields, values));
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
+                 NoSuchMethodException | ClassNotFoundException e) {
+            throw new DeserilizationException(e.getMessage());
+        }
+    }
+
+    public static Task deserilizationFromJSon(JsonElement jsonElement,
+                                              Type type,
+                                              JsonDeserializationContext jsonDeserializationContext) {
+        Object[] params = null;
+        int startIndex = 0;
+
+        try {
+            Class<?> classTask = Class.forName(type.getTypeName());
+            Field[] fields = getFields(classTask);
+
+            params = getConstructorParamFromJson(fields, jsonElement, classTask, jsonDeserializationContext);
+
+            // id пустой, создание нового, используем конструктор без uid и id
+            if (params[1] == null) {
+                startIndex = 2;
+                params = Arrays.copyOfRange(params, startIndex, params.length);
+            // создание уже существующего
+            } else {
+                params[0] =Task.uid;
+            }
+
+            Class<?>[] constructorAttributes = new Class[fields.length - startIndex];
+            for (int i = startIndex; i < fields.length; i++)
+                constructorAttributes[i - startIndex] = fields[i].getType();
+
+            Constructor<?> classConstructor = classTask.getDeclaredConstructor(constructorAttributes);
+            classConstructor.setAccessible(true);
+            return (Task) classConstructor.newInstance(params);
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
                  NoSuchMethodException | ClassNotFoundException e) {
             throw new DeserilizationException(e.getMessage());
@@ -314,4 +382,8 @@ public class Task implements Comparable<Task> {
                 || isDateInInterval(task.getStartTime(), task.getEndTime(), this.getEndTime());
 
     }
+
+//    public static int getUid() {
+//        return uid;
+//    }
 }
