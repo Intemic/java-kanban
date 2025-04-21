@@ -1,7 +1,6 @@
 package ru.practicum.server;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
+import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.sun.net.httpserver.HttpExchange;
@@ -15,14 +14,16 @@ import ru.practicum.manager.TaskManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import com.google.gson.Gson;
+import ru.practicum.task.Status;
 import ru.practicum.task.Task;
 
 class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
@@ -39,11 +40,60 @@ class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
     }
 }
 
+class DurationAdapter extends TypeAdapter<Duration> {
+
+    @Override
+    public void write(JsonWriter jsonWriter, Duration duration) throws IOException {
+        if (duration == null)
+            jsonWriter.value("null");
+        else
+            jsonWriter.value(duration.toString());
+    }
+
+    @Override
+    public Duration read(JsonReader jsonReader) throws IOException {
+        String value = jsonReader.nextString();
+
+        if (value.equals("null"))
+            return null;
+        else
+            return Duration.parse(value);
+    }
+}
+
+//class TaskSerialize implements JsonSerializer<Task> {
+//
+//    @Override
+//    public JsonElement serialize(Task task, Type type, JsonSerializationContext jsonSerializationContext) {
+//        return null;
+//    }
+//}
+
+/* так как нумерация идет автоматически при создании объекта,
+нужно реализовать свой десериализатор
+*/
+class TaskDeserializer implements JsonDeserializer<Task> {
+
+    @Override
+    public Task deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+        JsonObject jsonObject = jsonElement.getAsJsonObject();
+
+        return new Task(jsonObject.get("name").getAsString(),
+                jsonObject.get("description").getAsString(),
+                jsonDeserializationContext.deserialize(jsonObject.get("startTime"), LocalDateTime.class),
+                jsonDeserializationContext.deserialize(jsonObject.get("duration"), Duration.class));
+    }
+}
+
+
 abstract class BaseHttpHandler implements HttpHandler {
     protected static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     protected final TaskManager manager;
     protected Gson gson = new GsonBuilder()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .registerTypeAdapter(Task.class, new TaskDeserializer())
+            .serializeNulls()
             .create();
 
     public BaseHttpHandler(TaskManager manager) {
@@ -54,12 +104,12 @@ abstract class BaseHttpHandler implements HttpHandler {
         sendResponse(exchange, text, 200);
     }
 
-    protected void sendCreated(HttpExchange exchange, String text) throws IOException {
-        sendResponse(exchange, text, 201);
+    protected void sendCreated(HttpExchange exchange) throws IOException {
+        sendResponse(exchange, 201);
     }
 
     protected void sendNotFound(HttpExchange exchange, String text) throws IOException {
-        sendResponse(exchange, text, 404);
+        sendResponse(exchange, 404);
     }
 
     protected void sendHasInteractions(HttpExchange exchange, String text) throws IOException {
@@ -74,7 +124,11 @@ abstract class BaseHttpHandler implements HttpHandler {
         sendResponse(exchange, text, 500);
     }
 
-    protected void sendResponse(HttpExchange exchange, String text, int code) throws IOException {
+    private void sendResponse(HttpExchange exchange, int code) throws IOException {
+        sendResponse(exchange, "", code);
+    }
+
+    private void sendResponse(HttpExchange exchange, String text, int code) throws IOException {
         byte[] body = text.getBytes(DEFAULT_CHARSET);
 
         exchange.getResponseHeaders().set("Content-Type", "text/json; charset=utf-8");
@@ -167,8 +221,7 @@ class TaskHttpHandler extends BaseHttpHandler {
             if (taskId == null) {
                 List<Task> list = manager.getTasks();
                 text = gson.toJson(list);
-            }
-            else
+            } else
                 text = gson.toJson(manager.getTask(taskId));
 
             sendText(exchange, text);
@@ -183,8 +236,11 @@ class TaskHttpHandler extends BaseHttpHandler {
     protected void postHandler(HttpExchange exchange) throws IOException {
         try (InputStream body = exchange.getRequestBody()) {
             String text = new String(body.readAllBytes(), DEFAULT_CHARSET);
-            manager.createTask(gson.fromJson(text, Task.class));
-            sendCreated(exchange, "");
+            Task task = gson.fromJson(text, Task.class);
+            manager.createTask(task);
+            sendCreated(exchange);
+        } catch (Exception e) {
+            sendInternalError(exchange, gson.toJson(e.getMessage()));
         }
     }
 
