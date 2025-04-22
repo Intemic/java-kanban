@@ -393,8 +393,4 @@ public class Task implements Comparable<Task> {
                 || isDateInInterval(task.getStartTime(), task.getEndTime(), this.getEndTime());
 
     }
-
-//    public static int getUid() {
-//        return uid;
-//    }
 }

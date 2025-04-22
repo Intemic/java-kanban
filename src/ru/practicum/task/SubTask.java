@@ -33,6 +33,12 @@ public class SubTask extends Task {
         this.parentId = epic.getId();
     }
 
+    protected SubTask(String name, String description, Status status, LocalDateTime startTime, Duration duration,
+                      int parentId) {
+        super(name, description, status, startTime, duration);
+        this.parentId = parentId;
+    }
+
     public int getParentId() {
         return parentId;
     }

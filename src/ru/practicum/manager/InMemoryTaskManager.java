@@ -273,7 +273,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public SubTask deleteSubTask(int id) {
-        if (subTasks.containsKey(id))
+        if (!subTasks.containsKey(id))
             throw new NotFoundException("Подзадача не найдена");
 
         return subTasks.remove(id);
@@ -281,7 +281,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic deleteEpic(int id) {
-        if (epics.containsKey(id))
+        if (!epics.containsKey(id))
             throw new NotFoundException("Эпик не найден");
 
         return epics.remove(id);
@@ -289,7 +289,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<SubTask> getEpicSubTasks(int id) {
-        if (epics.containsKey(id))
+        if (!epics.containsKey(id))
             throw new NotFoundException("Эпик не найден");
 
         return epics.get(id).getSubTasks();

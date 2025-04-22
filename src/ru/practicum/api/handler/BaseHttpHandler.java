@@ -1,5 +1,6 @@
 package ru.practicum.api.handler;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import ru.practicum.exception.BadRequestException;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 abstract class BaseHttpHandler implements HttpHandler {
     protected static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     protected final TaskManager manager;
+    protected Gson gson;
 
     public BaseHttpHandler(TaskManager manager) {
         this.manager = manager;
@@ -28,15 +30,15 @@ abstract class BaseHttpHandler implements HttpHandler {
     }
 
     protected void sendNotFound(HttpExchange exchange) throws IOException {
-        sendResponse(exchange, null, 404);
+        sendResponse(exchange,  404);
     }
 
-    protected void sendHasInteractions(HttpExchange exchange, String text) throws IOException {
-        sendResponse(exchange, text, 406);
+    protected void sendHasInteractions(HttpExchange exchange) throws IOException {
+        sendResponse(exchange, 406);
     }
 
     protected void sendBadRequest(HttpExchange exchange) throws IOException {
-        sendResponse(exchange, null, 400);
+        sendResponse(exchange,  400);
     }
 
     protected void sendInternalError(HttpExchange exchange, String text) throws IOException {
@@ -44,25 +46,17 @@ abstract class BaseHttpHandler implements HttpHandler {
     }
 
     private void sendResponse(HttpExchange exchange, int code) throws IOException {
-        sendResponse(exchange, null, code);
+        sendResponse(exchange, "", code);
     }
 
     private void sendResponse(HttpExchange exchange, String text, int code) throws IOException {
-        long length = 0;
-        byte[] body = null;
-
-        if (text != null) {
-            body = text.getBytes(DEFAULT_CHARSET);
-            length = body.length;
-        }
+        byte[] body = text.getBytes(DEFAULT_CHARSET);
 
         exchange.getResponseHeaders().set("Content-Type", "text/json; charset=utf-8");
-        exchange.sendResponseHeaders(code, length);
+        exchange.sendResponseHeaders(code, body.length);
 
-        if (body != null) {
-            try (OutputStream outputStream = exchange.getResponseBody()) {
-                outputStream.write(body);
-            }
+        try (OutputStream outputStream = exchange.getResponseBody()) {
+            outputStream.write(body);
         }
     }
 
