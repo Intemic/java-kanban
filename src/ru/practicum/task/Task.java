@@ -3,6 +3,7 @@ package ru.practicum.task;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.annotations.Expose;
 import ru.practicum.exception.DeserilizationException;
 import ru.practicum.exception.SerializationException;
 
@@ -15,7 +16,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class Task implements Comparable<Task> {
+    @Expose (serialize = false, deserialize = false)
     private static int uid;
+    @Expose (deserialize = false)
     private int id;
     private String name;
     private String description;
@@ -36,13 +39,9 @@ public class Task implements Comparable<Task> {
         this.duration = duration;
     }
 
-    // нужен для создания объекта без изменения uid
-    protected Task(Task task) {
-        this(Task.uid, task.id, task.name, task.description, task.status, task.startTime, task.duration);
-    }
-
-    public Task(String name, String description) {
-        this(name, description, null, null);
+    protected Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        this(name, description, startTime, duration);
+        this.status = status;
     }
 
     public Task(String name, String description, LocalDateTime startTime, Duration duration) {
@@ -63,6 +62,18 @@ public class Task implements Comparable<Task> {
         this.status = Status.NEW;
         this.duration = duration;
     }
+
+
+    public Task(String name, String description) {
+        this(name, description, null, null);
+    }
+
+    // нужен для создания объекта без изменения uid
+    protected Task(Task task) {
+        this(Task.uid, task.id, task.name, task.description, task.status, task.startTime, task.duration);
+    }
+
+
 
     public String getName() {
         return name;

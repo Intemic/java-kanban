@@ -3,6 +3,7 @@ package ru.practicum.api.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import ru.practicum.exception.BadRequestException;
+import ru.practicum.exception.NotFoundException;
 import ru.practicum.manager.TaskManager;
 
 import java.io.IOException;
@@ -26,8 +27,8 @@ abstract class BaseHttpHandler implements HttpHandler {
         sendResponse(exchange, 201);
     }
 
-    protected void sendNotFound(HttpExchange exchange, String text) throws IOException {
-        sendResponse(exchange, 404);
+    protected void sendNotFound(HttpExchange exchange) throws IOException {
+        sendResponse(exchange, null, 404);
     }
 
     protected void sendHasInteractions(HttpExchange exchange, String text) throws IOException {
@@ -35,7 +36,7 @@ abstract class BaseHttpHandler implements HttpHandler {
     }
 
     protected void sendBadRequest(HttpExchange exchange) throws IOException {
-        sendResponse(exchange, null,  400);
+        sendResponse(exchange, null, 400);
     }
 
     protected void sendInternalError(HttpExchange exchange, String text) throws IOException {
@@ -96,13 +97,20 @@ abstract class BaseHttpHandler implements HttpHandler {
         return null;
     }
 
-    protected abstract void getHandler(HttpExchange exchange, Integer taskId) throws IOException;
+    protected void getHandler(HttpExchange exchange, Integer taskId) throws IOException {
+        if (taskId != null)
+            checkId(taskId);
+    }
 
     protected abstract void postHandler(HttpExchange exchange) throws IOException;
 
-    protected abstract void deleteHandler(HttpExchange exchange, Integer taskId) throws IOException;
+    protected void deleteHandler(HttpExchange exchange, Integer taskId) throws IOException {
+        checkId(taskId);
+    }
 
-    protected abstract void patchHandler(HttpExchange exchange, Integer taskId) throws IOException;
+    protected void patchHandler(HttpExchange exchange, Integer taskId) throws IOException {
+        checkId(taskId);
+    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -129,6 +137,10 @@ abstract class BaseHttpHandler implements HttpHandler {
 
         } catch (BadRequestException e) {
             sendBadRequest(exchange);
+        } catch (NotFoundException e) {
+            sendNotFound(exchange);
         }
     }
+
+    public abstract void checkId(int id);
 }
