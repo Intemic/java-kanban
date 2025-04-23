@@ -5,6 +5,12 @@ import ru.practicum.task.Task;
 
 import java.lang.reflect.Type;
 
+/*
+ из-за специфики реализации автоматической нумерации, при создание объектов задач происходит
+ автоматическая нумерация объектов, а при изменении должен создаваться объект без изменения
+ нумерации пришлось реализовать свой десериализатор
+ */
+
 public class TaskDeserializer implements JsonDeserializer<Task> {
     private final Integer taskId;
 

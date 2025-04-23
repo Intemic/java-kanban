@@ -15,20 +15,24 @@ import ru.practicum.task.SubTask;
 import ru.practicum.task.Task;
 
 public class HttpTaskServer {
-    public static void main(String[] args) {
-        TaskManager manager = Managers.getDefault();
-        Task task = new Task("Тестовая задача", "Что то сделать",
-                LocalDateTime.now(), Duration.ofMinutes(30));
-        manager.createTask(task);
+    private static HttpServer server;
 
-        Epic epic = new Epic("Эпик № 1", "Описание эпика № 1");
-        manager.createEpic(epic);
-
-        SubTask subTask = new SubTask("Подзадача № 1", "Описание подзадачи № 1", epic);
-        manager.createSubTask(subTask);
+    public static void start(TaskManager manager) {
+//        Task task = new Task("Тестовая задача", "Что то сделать",
+//                LocalDateTime.now(), Duration.ofMinutes(30));
+//        manager.createTask(task);
+//
+//        Epic epic = new Epic("Эпик № 1", "Описание эпика № 1");
+//        manager.createEpic(epic);
+//
+//        SubTask subTask = new SubTask("Подзадача № 1", "Описание подзадачи № 1", epic);
+//        manager.createSubTask(subTask);
+//
+//        subTask = new SubTask("Подзадача № 2", "Описание подзадачи № 2", epic);
+//        manager.createSubTask(subTask);
 
         try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+            server = HttpServer.create(new InetSocketAddress(8080), 0);
             server.createContext("/tasks", new TaskHttpHandler(manager));
             server.createContext("/subtasks", new SubTaskHttpHandler(manager));
             server.createContext("/epics", new EpicHttpHandler(manager));
@@ -39,5 +43,16 @@ public class HttpTaskServer {
         } catch (IOException e) {
             System.out.println("Ошибка запуска сервера: " + e.getMessage());
         }
+    }
+
+    public static void stop() {
+        if (server != null) {
+            server.stop(0);
+            server = null;
+        }
+    }
+
+    public static void main(String[] args) {
+        start(Managers.getDefault());
     }
 }

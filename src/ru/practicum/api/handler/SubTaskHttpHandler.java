@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class SubTaskHttpHandler extends BaseHttpHandler {
     public SubTaskHttpHandler(TaskManager manager) {
@@ -33,10 +32,9 @@ public class SubTaskHttpHandler extends BaseHttpHandler {
         String text = null;
 
         try {
-            if (taskId == null) {
-                List<SubTask> list = manager.getSubTasks();
-                text = gson.toJson(list);
-            } else
+            if (taskId == null)
+                text = gson.toJson(manager.getSubTasks());
+            else
                 text = gson.toJson(manager.getSubTask(taskId));
 
             sendText(exchange, text);
