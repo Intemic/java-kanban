@@ -30,7 +30,7 @@ abstract class BaseHttpHandler implements HttpHandler {
     }
 
     protected void sendNotFound(HttpExchange exchange) throws IOException {
-        sendResponse(exchange,  404);
+        sendResponse(exchange, 404);
     }
 
     protected void sendHasInteractions(HttpExchange exchange) throws IOException {
@@ -38,7 +38,7 @@ abstract class BaseHttpHandler implements HttpHandler {
     }
 
     protected void sendBadRequest(HttpExchange exchange) throws IOException {
-        sendResponse(exchange,  400);
+        sendResponse(exchange, 400);
     }
 
     protected void sendInternalError(HttpExchange exchange, String text) throws IOException {

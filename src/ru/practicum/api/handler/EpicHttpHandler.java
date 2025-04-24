@@ -29,7 +29,7 @@ public class EpicHttpHandler extends BaseHttpHandler {
         switch (method) {
             case "GET":
                 if (!(path.matches("/\\w+$") || path.matches("/\\w+/\\d+$")
-                || path.matches("/\\w+/\\d+/subtasks$")))
+                        || path.matches("/\\w+/\\d+/subtasks$")))
                     throw new BadRequestException("Некорректный запрос");
 
                 if (path.matches("/\\w+/\\d+$") || path.matches("/\\w+/\\d+/subtasks$"))
@@ -37,7 +37,7 @@ public class EpicHttpHandler extends BaseHttpHandler {
 
                 break;
             default:
-               return super.checkURL(method, path);
+                return super.checkURL(method, path);
 
         }
 
