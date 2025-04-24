@@ -16,9 +16,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class Task implements Comparable<Task> {
-    @Expose (serialize = false, deserialize = false)
+    @Expose(serialize = false, deserialize = false)
     private static int uid;
-    @Expose (deserialize = false)
+    @Expose(deserialize = false)
     private int id;
     private String name;
     private String description;
@@ -72,7 +72,6 @@ public class Task implements Comparable<Task> {
     protected Task(Task task) {
         this(Task.uid, task.id, task.name, task.description, task.status, task.startTime, task.duration);
     }
-
 
 
     public String getName() {
@@ -309,9 +308,9 @@ public class Task implements Comparable<Task> {
             if (params[1] == null) {
                 startIndex = 2;
                 params = Arrays.copyOfRange(params, startIndex, params.length);
-            // создание уже существующего
+                // создание уже существующего
             } else {
-                params[0] =Task.uid;
+                params[0] = Task.uid;
             }
 
             Class<?>[] constructorAttributes = new Class[fields.length - startIndex];
