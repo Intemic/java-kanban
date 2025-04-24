@@ -113,7 +113,7 @@ class HistoryUrlsTest {
 
         try {
             response = client.send(request, handler);
-            assertEquals(400, response.statusCode(), "Код возврата не соответствует 400");
+            assertEquals(405, response.statusCode(), "Код возврата не соответствует 400");
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -130,7 +130,7 @@ class HistoryUrlsTest {
 
         try {
             response = client.send(request, handler);
-            assertEquals(400, response.statusCode(), "Код возврата не соответствует 400");
+            assertEquals(405, response.statusCode(), "Код возврата не соответствует 400");
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -150,7 +150,7 @@ class HistoryUrlsTest {
 
         try {
             response = client.send(request, handler);
-            assertEquals(400, response.statusCode(), "Код возврата не соответствует 400");
+            assertEquals(405, response.statusCode(), "Код возврата не соответствует 400");
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

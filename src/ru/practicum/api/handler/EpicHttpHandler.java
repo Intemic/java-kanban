@@ -5,7 +5,7 @@ import com.sun.net.httpserver.HttpExchange;
 import ru.practicum.api.adapter.DurationAdapter;
 import ru.practicum.api.adapter.LocalDateTimeAdapter;
 import ru.practicum.api.serializer.TaskDeserializer;
-import ru.practicum.exception.BadRequestException;
+import ru.practicum.api.exception.BadRequestException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.manager.TaskManager;
 import ru.practicum.task.Epic;

@@ -32,23 +32,4 @@ public class PrioritizedHttpHandler extends BaseHttpHandler {
             sendInternalError(exchange, gson.toJson(e.getMessage()));
         }
     }
-
-    @Override
-    protected void postHandler(HttpExchange exchange) throws IOException {
-        sendBadRequest(exchange);
-    }
-
-    @Override
-    protected void deleteHandler(HttpExchange exchange, Integer taskId) throws IOException {
-        sendBadRequest(exchange);
-    }
-
-    @Override
-    protected void patchHandler(HttpExchange exchange, Integer taskId) throws IOException {
-        sendBadRequest(exchange);
-    }
-
-    @Override
-    public void checkId(int id) {
-    }
 }

@@ -3,7 +3,8 @@ package ru.practicum.api.handler;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import ru.practicum.exception.BadRequestException;
+import ru.practicum.api.exception.BadRequestException;
+import ru.practicum.api.exception.MethodNotAllowed;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.manager.TaskManager;
 
@@ -35,6 +36,10 @@ abstract class BaseHttpHandler implements HttpHandler {
 
     protected void sendHasInteractions(HttpExchange exchange) throws IOException {
         sendResponse(exchange, 406);
+    }
+
+    protected void sendMethodNotAllowed(HttpExchange exchange, String text) throws IOException {
+        sendResponse(exchange, text, 405);
     }
 
     protected void sendBadRequest(HttpExchange exchange) throws IOException {
@@ -85,7 +90,7 @@ abstract class BaseHttpHandler implements HttpHandler {
                 return Integer.parseInt(parts[2]);
 
             default:
-                throw new BadRequestException("Некорректный запрос");
+                throw new MethodNotAllowed("Данный метод не предусмотрен");
         }
 
         return null;
@@ -96,7 +101,9 @@ abstract class BaseHttpHandler implements HttpHandler {
             checkId(taskId);
     }
 
-    protected abstract void postHandler(HttpExchange exchange) throws IOException;
+    protected void postHandler(HttpExchange exchange) throws IOException {
+        throw new MethodNotAllowed("Данный метод не предусмотрен");
+    }
 
     protected void deleteHandler(HttpExchange exchange, Integer taskId) throws IOException {
         checkId(taskId);
@@ -133,8 +140,12 @@ abstract class BaseHttpHandler implements HttpHandler {
             sendBadRequest(exchange);
         } catch (NotFoundException e) {
             sendNotFound(exchange);
+        } catch (MethodNotAllowed e) {
+            sendMethodNotAllowed(exchange, e.getMessage());
         }
     }
 
-    public abstract void checkId(int id);
+    public void checkId(int id) {
+        throw new MethodNotAllowed("Данный метод не предусмотрен");
+    }
 }
