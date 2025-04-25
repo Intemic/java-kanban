@@ -2,7 +2,10 @@ package ru.practicum.history;
 
 import ru.practicum.task.Task;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
     private LinkedTaskList history = new LinkedTaskList();

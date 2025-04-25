@@ -24,6 +24,10 @@ public class Epic extends Task {
         super(name, description);
     }
 
+    protected Epic(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        super(name, description, status, startTime, duration);
+    }
+
     @Override
     // вручную нельзя изменять
     public void setStatus(Status status) {

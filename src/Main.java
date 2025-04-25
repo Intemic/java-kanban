@@ -1,6 +1,10 @@
+import ru.practicum.manager.InMemoryTaskManager;
+import ru.practicum.manager.InMemoryTaskManagerAlternative;
 import ru.practicum.manager.TaskManager;
-import ru.practicum.task.*;
-import ru.practicum.manager.*;
+import ru.practicum.task.Epic;
+import ru.practicum.task.Status;
+import ru.practicum.task.SubTask;
+import ru.practicum.task.Task;
 
 import java.util.ArrayList;
 
